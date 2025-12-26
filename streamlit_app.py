@@ -226,8 +226,8 @@ if 'trigger_refresh' not in st.session_state: st.session_state.trigger_refresh =
 if 'current_museum' not in st.session_state: st.session_state.current_museum = "南京博物院"
 
 # --- 关键修复：防止旧缓存导致 Key Error ---
-if st.session_state.current_museum not in MUSEUM_INFO:
-    st.session_state.current_museum = list(MUSEUM_INFO.keys())[0]
+if st.session_state.current_museum not in MANSION_CONFIG:
+    st.session_state.current_museum = list(MANSION_CONFIG.keys())[0]
     
 # 常量
 FREE_PERIOD_SECONDS = 60
