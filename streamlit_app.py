@@ -353,7 +353,6 @@ dashboard_html = f"""
             <div style="font-size: 1.8rem; font-weight: 900; color: #d9534f;">¥{st.session_state.total_revenue / 100000000:.2f}亿</div>
             <div style="font-size: 0.8rem; color: #86868b; text-transform: uppercase;">累计拍卖总额</div>
         </div>
-        
         <div class="mansion-box" style="background-image: url('{m_info["mansion_img"]}');">
             <div class="mansion-overlay"></div>
             <div class="mansion-content">
