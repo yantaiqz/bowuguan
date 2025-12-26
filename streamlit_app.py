@@ -267,41 +267,6 @@ with col_more:
     st.markdown("""<a href="https://laodeng.streamlit.app/" target="_blank" style="text-decoration:none;"><button class="neal-btn">✨ 更多好玩应用</button></a>""", unsafe_allow_html=True)
 
 # ==========================================
-# 6. 权限校验逻辑
-# ==========================================
-current_time = datetime.datetime.now()
-access_granted = False
-
-if st.session_state.access_status == 'free':
-    time_elapsed = (current_time - st.session_state.start_time).total_seconds()
-    if time_elapsed < FREE_PERIOD_SECONDS:
-        access_granted = True
-        st.info(f"⏳ **免费体验中... 剩余 {FREE_PERIOD_SECONDS - time_elapsed:.0f} 秒。**")
-    else:
-        st.session_state.access_status = 'locked'
-        st.rerun()
-elif st.session_state.access_status == 'unlocked':
-    unlock_expiry = st.session_state.unlock_time + datetime.timedelta(hours=ACCESS_DURATION_HOURS)
-    if current_time < unlock_expiry:
-        access_granted = True
-    else:
-        st.session_state.access_status = 'locked'
-        st.rerun()
-
-if not access_granted:
-    st.error("🔒 **体验已结束**")
-    st.markdown(f"""
-    <div style="background-color: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-top: 15px;">
-        <p style="font-weight: 600; color: #1f2937; margin-bottom: 5px;">🔑 获取无限访问权限</p>
-        <code style="background-color: #eef2ff; padding: 5px;">请输入代码: vip24</code>
-    </div>""", unsafe_allow_html=True)
-    with st.form("lock_form"):
-        if st.form_submit_button("验证并解锁") and st.text_input("解锁代码", type="password") == UNLOCK_CODE:
-            st.session_state.access_status, st.session_state.unlock_time = 'unlocked', datetime.datetime.now()
-            st.rerun()
-    st.stop()
-
-# ==========================================
 # 7. 游戏主界面：导航 & 仪表盘
 # ==========================================
 st.markdown("<h2 style='text-align: center; margin-top: 10px; color: #111;'>🏛️ 华夏国宝私有化中心</h2>", unsafe_allow_html=True)
