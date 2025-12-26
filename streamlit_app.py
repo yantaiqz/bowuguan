@@ -232,6 +232,13 @@ dashboard_html = f"""
                 <div class="dash-val">¥{total_revenue_yi:.2f}亿</div>
                 <div class="dash-label">当前拍卖总额</div>
             </div>
+            <div style="display: flex; align-items: center;">
+                <div class="villa-icon">🏡</div>
+                <div style="text-align: left;">
+                    <div class="dash-val" style="color: #2AAD67;">× {villa_count:.1f}栋</div>
+                    <div class="dash-label">折合颐和路民国别墅</div>
+                </div>
+            </div>
             
         </div>
     </div>
@@ -290,6 +297,7 @@ for row_items in rows:
                     <div class="t-desc" title="{item['desc']}">{item['desc']}</div>
                     <div class="t-price">¥{format_price(item['price'])}</div>
                 </div>
+                
             </div>
             """
             st.markdown(card_html, unsafe_allow_html=True)
