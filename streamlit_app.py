@@ -1,9 +1,13 @@
 import streamlit as st
+import sqlite3
+import uuid
+import datetime
+import os
 import time
 import random
 
 # ==========================================
-# 1. 全局配置与沉浸式 UI 注入
+# 1. 全局配置
 # ==========================================
 st.set_page_config(
     page_title="National Treasures Auction | 国宝拍卖行",
@@ -12,131 +16,17 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 隐藏所有 Streamlit 原生组件：菜单、工具栏、页脚
-st.markdown("""
-<style>
-    /* 彻底隐藏顶部工具栏和菜单 */
-    [data-testid="stHeader"] {display: none !important;}
-    footer {visibility: hidden !important;}
-    #MainMenu {visibility: hidden !important;}
-    
-    .stApp { 
-        background-color: #f5f5f7 !important; 
-        color: #1d1d1f; 
-        padding-top: 0 !important;
-    }
-
-    /* --- 顶部博物馆导航栏 --- */
-    .nav-container {
-        background: #ffffff;
-        padding: 10px 0;
-        border-bottom: 1px solid #e5e5e5;
-        text-align: center;
-    }
-
-    /* --- 房产展示区美化 --- */
-    .mansion-box {
-        background-size: cover;
-        background-position: center;
-        border-radius: 12px;
-        padding: 15px;
-        min-width: 280px;
-        color: white;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-        position: relative;
-        overflow: hidden;
-        border: 1px solid rgba(255,255,255,0.2);
-    }
-    .mansion-overlay {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0, 0, 0, 0.3);
-        z-index: 1;
-    }
-    .mansion-content { position: relative; z-index: 2; }
-
-    /* --- 仪表盘吸顶 --- */
-    .dashboard {
-        position: sticky; 
-        top: 0; 
-        z-index: 999;
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(20px);
-        padding: 15px 30px !important;
-        border-bottom: 1px solid #e5e5e5;
-        margin: 0 -1rem 20px -1rem !important;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-    }
-
-    /* --- 文物卡片 --- */
-    .treasure-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-        transition: all 0.3s;
-        border: 1px solid #e5e5e5;
-        overflow: hidden;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-    .treasure-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); }
-    .t-img { width: 100%; height: 180px; object-fit: cover; }
-    .t-content { padding: 15px; flex-grow: 1; }
-    .t-title { font-size: 1.1rem; font-weight: 800; color: #111; margin-bottom: 5px; }
-    .t-price { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; color: #d9534f; font-weight: 700; }
-
-    /* 横向选择器样式 */
-    div[role="radiogroup"] {
-        display: flex;
-        justify-content: center;
-        gap: 15px;
-        background: white;
-        padding: 15px;
-        border-radius: 0;
-    }
-</style>
-""", unsafe_allow_html=True)
-
 # ==========================================
-# 2. 核心映射数据
+# 2. 核心数据：五大博物馆 (完整数据)
 # ==========================================
-MUSEUM_INFO = {
-    "南京博物院": {
-        "city": "南京",
-        "mansion_name": "颐和路民国别墅",
-        "mansion_price": 100000000,
-        "mansion_img": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=400&q=80"
-    },
-    "三星堆博物馆": {
-        "city": "三星堆",
-        "mansion_name": "成都麓山国际豪宅",
-        "mansion_price": 50000000,
-        "mansion_img": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80"
-    },
-    "中国国家博物馆": {
-        "city": "北京",
-        "mansion_name": "什刹海四合院",
-        "mansion_price": 150000000,
-        "mansion_img": "https://images.unsplash.com/photo-1595130838493-2199b4226d9e?auto=format&fit=crop&w=400&q=80"
-    },
-    "上海博物馆": {
-        "city": "上海",
-        "mansion_name": "愚园路老洋房",
-        "mansion_price": 200000000,
-        "mansion_img": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80"
-    },
-    "陕西历史博物馆": {
-        "city": "西安",
-        "mansion_name": "曲江池畔大平层",
-        "mansion_price": 30000000,
-        "mansion_img": "https://images.unsplash.com/photo-1600607687940-472002695533?auto=format&fit=crop&w=400&q=80"
-    }
+MANSION_CONFIG = {
+    "南京博物院": {"name": "颐和路民国别墅", "price": 100000000, "img": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=400&q=80"},
+    "三星堆博物馆": {"name": "成都麓山国际豪宅", "price": 50000000, "img": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80"},
+    "中国国家博物馆": {"name": "什刹海四合院", "price": 150000000, "img": "https://images.unsplash.com/photo-1595130838493-2199b4226d9e?auto=format&fit=crop&w=400&q=80"},
+    "上海博物馆": {"name": "愚园路老洋房", "price": 200000000, "img": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80"},
+    "陕西历史博物馆": {"name": "曲江池畔大平层", "price": 30000000, "img": "https://images.unsplash.com/photo-1600607687940-472002695533?auto=format&fit=crop&w=400&q=80"}
 }
 
-# ==========================================
-# 3. 核心馆藏数据 (已扩充至18-20个/馆)
-# ==========================================
 MUSEUM_TREASURES = {
     "南京博物院": [
         {"id": "nj_1", "name": "金兽", "period": "西汉", "desc": "含金量99%，最重金器", "price": 500000000, "img": "https://picsum.photos/seed/nj1/400/300"},
@@ -241,16 +131,180 @@ MUSEUM_TREASURES = {
 }
 
 # ==========================================
-# 4. 状态管理
+# 3. 样式合并 (基础样式 + 沉浸式 + 咖啡加强版)
 # ==========================================
-if 'sold_items' not in st.session_state: st.session_state.sold_items = set()
-if 'total_revenue' not in st.session_state: st.session_state.total_revenue = 0
-if 'current_museum' not in st.session_state: st.session_state.current_museum = "南京博物院"
+st.markdown("""
+<style>
+    /* --- 基础设置 --- */
+    #MainMenu {visibility: hidden !important;}
+    footer {visibility: hidden !important;}
+    [data-testid="stHeader"] {display: none !important;}
+    .stApp { background-color: #f5f5f7 !important; color: #1d1d1f; padding-top: 0 !important; }
+    .block-container { padding-top: 1rem !important; max-width: 1400px !important; }
+
+    /* --- 右上角功能区 --- */
+    .neal-btn {
+        font-family: 'Inter', sans-serif; background: #fff;
+        border: 1px solid #e5e7eb; color: #111; font-weight: 600;
+        padding: 8px 16px; border-radius: 8px; cursor: pointer;
+        transition: all 0.2s; display: inline-flex; align-items: center;
+        justify-content: center; text-decoration: none !important; width: 100%;
+    }
+    .neal-btn:hover { background: #f9fafb; transform: translateY(-1px); }
+    
+    /* --- 仪表盘吸顶 --- */
+    .dashboard {
+        position: sticky; top: 0; z-index: 999;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(20px);
+        padding: 15px 30px !important;
+        border-bottom: 1px solid #e5e5e5;
+        margin: 0 -1rem 20px -1rem !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+    .dash-val { font-size: 1.5rem; font-weight: 900; color: #d9534f; font-family: 'Inter', sans-serif; line-height: 1; }
+    .dash-label { font-size: 0.75rem; color: #86868b; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px !important; }
+
+    /* --- 房产展示区美化 --- */
+    .mansion-box {
+        background-size: cover; background-position: center; border-radius: 12px;
+        padding: 15px; min-width: 280px; color: white;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.8); position: relative;
+        overflow: hidden; border: 1px solid rgba(255,255,255,0.2);
+    }
+    .mansion-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.3); z-index: 1; }
+    .mansion-content { position: relative; z-index: 2; }
+
+    /* --- 文物卡片 --- */
+    .treasure-card {
+        background: white; border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03); transition: all 0.3s;
+        border: 1px solid #e5e5e5; overflow: hidden; height: 100%;
+        display: flex; flex-direction: column;
+    }
+    .treasure-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); }
+    .t-img-box { height: 180px; width: 100%; overflow: hidden; background: #f0f0f0; display: flex; align-items: center; justify-content: center; }
+    .t-img { width: 100%; height: 100%; object-fit: cover; transition: filter 0.3s ease; }
+    .t-content { padding: 12px !important; flex-grow: 1; display: flex; flex-direction: column; }
+    .t-title { font-size: 1rem; font-weight: 800; color: #111; margin-bottom: 4px !important; }
+    .t-period { font-size: 0.75rem; color: #86868b; background: #f5f5f7; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-bottom: 6px !important; width: fit-content; }
+    .t-desc { font-size: 0.8rem; color: #555; line-height: 1.4; margin-bottom: 8px !important; flex-grow: 1; }
+    .t-price { font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; color: #d9534f; margin: 5px 0 !important; }
+
+    /* --- 咖啡打赏 & 统计 --- */
+    .pay-amount-display { font-family: 'JetBrains Mono', monospace; font-size: 1.8rem; font-weight: 800; margin: 10px 0; color: #d9534f;}
+    .pay-label { font-size: 0.85rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+    .color-wechat { color: #2AAD67; }
+    .color-alipay { color: #1677ff; }
+    .color-paypal { color: #003087; }
+    .pay-instruction { font-size: 0.8rem; color: #94a3b8; margin-top: 15px; margin-bottom: 5px; }
+    .stats-bar { display: flex; justify-content: center; gap: 25px; margin-top: 40px; padding: 15px 25px; background-color: white; border-radius: 50px; border: 1px solid #eee; color: #6b7280; font-size: 0.85rem; width: fit-content; margin-left: auto; margin-right: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+
+    /* 横向选择器样式 */
+    div[role="radiogroup"] { display: flex; justify-content: center; gap: 15px; background: white; padding: 15px; border-radius: 0; }
+    
+    /* 按钮覆盖 */
+    div[data-testid="stButton"] button { width: 100% !important; border-radius: 6px !important; font-weight: 600 !important; font-size: 0.9rem !important; }
+</style>
+""", unsafe_allow_html=True)
 
 # ==========================================
-# 5. 顶部导航 (博物馆全称)
+# 4. 状态初始化 & 语言配置
 # ==========================================
-st.markdown("<h2 style='text-align: center; margin-top: 20px; color: #111;'>🏛️ 华夏国宝私有化中心</h2>", unsafe_allow_html=True)
+if 'start_time' not in st.session_state:
+    st.session_state.start_time = datetime.datetime.now()
+    st.session_state.access_status = 'free'
+    st.session_state.unlock_time = None
+if 'language' not in st.session_state: st.session_state.language = 'zh'
+if 'coffee_num' not in st.session_state: st.session_state.coffee_num = 1
+if 'visitor_id' not in st.session_state: st.session_state["visitor_id"] = str(uuid.uuid4())
+
+# 游戏状态
+if 'sold_items' not in st.session_state: st.session_state.sold_items = set() 
+if 'total_revenue' not in st.session_state: st.session_state.total_revenue = 0
+if 'trigger_refresh' not in st.session_state: st.session_state.trigger_refresh = False
+if 'current_museum' not in st.session_state: st.session_state.current_museum = "南京博物院"
+
+# 常量
+FREE_PERIOD_SECONDS = 60
+ACCESS_DURATION_HOURS = 24
+UNLOCK_CODE = "vip24"
+DB_FILE = os.path.join(os.path.expanduser("~/"), "visit_stats.db")
+
+lang_texts = {
+    'zh': {
+        'coffee_desc': '如果这个游戏帮到了你，欢迎支持老登的创作。',
+        'coffee_btn': "☕ 请开发者喝咖啡",
+        'coffee_title': " ",
+        'coffee_amount': "请输入打赏杯数",
+        'pay_wechat': '微信支付', 'pay_alipay': '支付宝', 'pay_paypal': '贝宝',
+        'pay_success': "收到！感谢打赏。❤️",
+        'presets': [("☕ 提神", "由衷感谢"), ("🍗 鸡腿", "动力加倍"), ("🚀 续命", "老登不朽")]
+    },
+    'en': {
+        'coffee_desc': 'If you enjoyed this game, support is appreciated.',
+        'coffee_btn': "☕ Buy me a coffee",
+        'coffee_title': " ",
+        'coffee_amount': "Enter Coffee Count",
+        'pay_wechat': 'WeChat', 'pay_alipay': 'Alipay', 'pay_paypal': 'PayPal',
+        'pay_success': "Received! Thanks! ❤️",
+        'presets': [("☕ Coffee", "Thanks"), ("🍗 Meal", "Power Up"), ("🚀 Rocket", "Amazing")]
+    }
+}
+current_text = lang_texts[st.session_state.language]
+
+# ==========================================
+# 5. 顶部功能区 (语言切换 & 更多应用)
+# ==========================================
+st.markdown("<br>", unsafe_allow_html=True)
+col_empty, col_lang, col_more = st.columns([0.7, 0.1, 0.2])
+with col_lang:
+    l_btn = "En" if st.session_state.language == 'zh' else "中"
+    if st.button(l_btn, key="lang_switch", use_container_width=True):
+        st.session_state.language = 'en' if st.session_state.language == 'zh' else 'zh'
+        st.rerun()
+with col_more:
+    st.markdown("""<a href="https://laodeng.streamlit.app/" target="_blank" style="text-decoration:none;"><button class="neal-btn">✨ 更多好玩应用</button></a>""", unsafe_allow_html=True)
+
+# ==========================================
+# 6. 权限校验逻辑
+# ==========================================
+current_time = datetime.datetime.now()
+access_granted = False
+
+if st.session_state.access_status == 'free':
+    time_elapsed = (current_time - st.session_state.start_time).total_seconds()
+    if time_elapsed < FREE_PERIOD_SECONDS:
+        access_granted = True
+        st.info(f"⏳ **免费体验中... 剩余 {FREE_PERIOD_SECONDS - time_elapsed:.0f} 秒。**")
+    else:
+        st.session_state.access_status = 'locked'
+        st.rerun()
+elif st.session_state.access_status == 'unlocked':
+    unlock_expiry = st.session_state.unlock_time + datetime.timedelta(hours=ACCESS_DURATION_HOURS)
+    if current_time < unlock_expiry:
+        access_granted = True
+    else:
+        st.session_state.access_status = 'locked'
+        st.rerun()
+
+if not access_granted:
+    st.error("🔒 **体验已结束**")
+    st.markdown(f"""
+    <div style="background-color: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-top: 15px;">
+        <p style="font-weight: 600; color: #1f2937; margin-bottom: 5px;">🔑 获取无限访问权限</p>
+        <code style="background-color: #eef2ff; padding: 5px;">请输入代码: vip24</code>
+    </div>""", unsafe_allow_html=True)
+    with st.form("lock_form"):
+        if st.form_submit_button("验证并解锁") and st.text_input("解锁代码", type="password") == UNLOCK_CODE:
+            st.session_state.access_status, st.session_state.unlock_time = 'unlocked', datetime.datetime.now()
+            st.rerun()
+    st.stop()
+
+# ==========================================
+# 7. 游戏主界面：导航 & 仪表盘
+# ==========================================
+st.markdown("<h2 style='text-align: center; margin-top: 10px; color: #111;'>🏛️ 华夏国宝私有化中心</h2>", unsafe_allow_html=True)
 
 selected_museum = st.radio(
     "Select Museum",
@@ -264,11 +318,9 @@ if selected_museum != st.session_state.current_museum:
     st.session_state.current_museum = selected_museum
     st.rerun()
 
-# ==========================================
-# 6. 吸顶仪表盘 (房产配图)
-# ==========================================
+# 仪表盘计算
 m_info = MUSEUM_INFO[st.session_state.current_museum]
-villa_count = st.session_state.total_revenue / m_info["mansion_price"]
+villa_count = st.session_state.total_revenue / m_info["mansion_price"] if m_info["mansion_price"] else 0
 
 dashboard_html = f"""
 <div class="dashboard">
@@ -278,6 +330,7 @@ dashboard_html = f"""
             <div style="font-size: 1.8rem; font-weight: 900; color: #d9534f;">¥{st.session_state.total_revenue / 100000000:.2f}亿</div>
             <div style="font-size: 0.8rem; color: #86868b; text-transform: uppercase;">累计拍卖总额</div>
         </div>
+        
         <div class="mansion-box" style="background-image: url('{m_info["mansion_img"]}');">
             <div class="mansion-overlay"></div>
             <div class="mansion-content">
@@ -292,27 +345,27 @@ dashboard_html = f"""
 st.markdown(dashboard_html, unsafe_allow_html=True)
 
 # ==========================================
-# 7. 拍卖核心函数
+# 8. 核心函数与展示区
 # ==========================================
+def format_price(price):
+    if price >= 100000000: return f"{price/100000000:.1f}亿"
+    elif price >= 10000: return f"{price/10000:.0f}万"
+    return str(price)
+
 def sell_item(item_id, price):
     if item_id not in st.session_state.sold_items:
         st.session_state.sold_items.add(item_id)
         st.session_state.total_revenue += price
-        st.toast(f"🔨 恭喜！您成功购入了一件国宝", icon="💰")
-        time.sleep(0.5)
-        st.rerun()
+        st.session_state.trigger_refresh = True
+        st.toast(f"🔨 成交！入账 ¥{format_price(price)}", icon="💰")
 
-# ==========================================
-# 8. 主内容展示区
-# ==========================================
+# 展示区
 items = MUSEUM_TREASURES.get(st.session_state.current_museum, [])
-
-# 动态布局：每行4个
 cols_per_row = 4
 rows = [items[i:i + cols_per_row] for i in range(0, len(items), cols_per_row)]
 
 for row_items in rows:
-    cols = st.columns(cols_per_row)
+    cols = st.columns(cols_per_row, gap="medium")
     for idx, item in enumerate(row_items):
         with cols[idx]:
             is_sold = item['id'] in st.session_state.sold_items
@@ -326,22 +379,115 @@ for row_items in rows:
                     <div class="t-title">{item['name']}</div>
                     <div class="t-period">{item.get('period', '古代')}</div>
                     <div class="t-desc" title="{item['desc']}">{item['desc']}</div>
-                    <div class="t-price">¥{item['price']/100000000:.2f}亿</div>
+                    <div class="t-price">¥{format_price(item['price'])}</div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
             
             if is_sold:
-                st.button("已购入", key=item['id'], disabled=True, use_container_width=True)
+                st.button("🚫 已私有化", key=f"btn_{item['id']}", disabled=True, use_container_width=True)
             else:
-                st.button("立即拍卖", key=item['id'], type="primary", use_container_width=True, 
+                st.button("🔨 立即拍卖", key=f"btn_{item['id']}", type="primary", use_container_width=True, 
                           on_click=sell_item, args=(item['id'], item['price']))
 
-# ==========================================
-# 9. 底部重置
-# ==========================================
-st.write("<br><br>", unsafe_allow_html=True)
-if st.button("🔄 破产并清空所有藏品"):
+# 底部重置
+st.write("<br>", unsafe_allow_html=True)
+if st.button("🔄 破产并清空所有藏品", type="secondary", use_container_width=True):
     st.session_state.sold_items = set()
     st.session_state.total_revenue = 0
+    st.session_state.trigger_refresh = True
+
+# 自动刷新
+if st.session_state.trigger_refresh:
+    st.session_state.trigger_refresh = False
     st.rerun()
+
+# ==========================================
+# 9. 咖啡打赏 & 底部统计
+# ==========================================
+def get_txt(key): return lang_texts[st.session_state.language][key]
+
+st.markdown("<br><hr>", unsafe_allow_html=True)    
+c1, c2, c3 = st.columns([1, 2, 1])
+
+with c2:
+    @st.dialog(" " + get_txt('coffee_title'), width="small")
+    def show_coffee_window():
+        st.markdown(f"""<div style="text-align:center; color:#666; margin-bottom:15px;">{get_txt('coffee_desc')}</div>""", unsafe_allow_html=True)
+        presets = get_txt('presets')
+        def set_val(n): st.session_state.coffee_num = n
+        
+        cols = st.columns(3, gap="small")
+        for i, (icon, num) in enumerate([(1,1), (3,3), (5,5)]): # Simplified for loop
+            with cols[i]:
+                if st.button(f"{presets[i][0]}", use_container_width=True, key=f"p_btn_{i}"): set_val(num[1])
+        
+        st.write("")
+        col_amount, col_total = st.columns([1, 1], gap="small")
+        with col_amount: 
+            cnt = st.number_input(get_txt('coffee_amount'), 1, 100, step=1, key='coffee_num')
+        
+        cny_total = cnt * 10
+        usd_total = cnt * 2
+
+        def render_pay_tab(title, amount_str, color_class, img_path, qr_data_suffix, link_url=None):
+            with st.container(border=True):
+                st.markdown(f"""<div style="text-align: center; padding-bottom: 10px;"><div class="pay-label {color_class}" style="margin-bottom: 5px;">{title}</div><div class="pay-amount-display {color_class}" style="margin: 0; font-size: 1.8rem;">{amount_str}</div></div>""", unsafe_allow_html=True)
+                c_img_1, c_img_2, c_img_3 = st.columns([1, 4, 1])
+                with c_img_2:
+                    qr_data = f"Donate_{cny_total}_{qr_data_suffix}"
+                    if link_url: qr_data = link_url
+                    st.image(f"https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={qr_data}", use_container_width=True)
+                if link_url:
+                    st.write("")
+                    st.link_button(f"👉 Pay {amount_str}", link_url, type="primary", use_container_width=True)
+                else:
+                    st.markdown(f"""<div class="pay-instruction" style="text-align: center; padding-top: 10px;">请使用手机扫描上方二维码</div>""", unsafe_allow_html=True)
+                    
+        st.write("")
+        t1, t2, t3 = st.tabs([get_txt('pay_wechat'), get_txt('pay_alipay'), get_txt('pay_paypal')])
+        with t1: render_pay_tab("WeChat Pay", f"¥{cny_total}", "color-wechat", "wechat_pay.jpg", "WeChat")
+        with t2: render_pay_tab("Alipay", f"¥{cny_total}", "color-alipay", "ali_pay.jpg", "Alipay")
+        with t3: render_pay_tab("PayPal", f"${usd_total}", "color-paypal", "paypal.png", "PayPal", "https://paypal.me/yourid")
+        
+        st.write("")
+        if st.button("🎉 " + get_txt('pay_success').split('!')[0], type="primary", use_container_width=True):
+            st.balloons()
+            st.toast(get_txt('pay_success'))
+            time.sleep(1.5)
+            st.rerun()
+
+    if st.button(get_txt('coffee_btn'), use_container_width=True):
+        show_coffee_window()
+
+# 数据库统计
+def track_stats():
+    try:
+        conn = sqlite3.connect(DB_FILE, check_same_thread=False)
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS daily_traffic (date TEXT PRIMARY KEY, pv_count INTEGER DEFAULT 0)''')
+        c.execute('''CREATE TABLE IF NOT EXISTS visitors (visitor_id TEXT PRIMARY KEY, last_visit_date TEXT)''')
+        today = datetime.datetime.utcnow().date().isoformat()
+        vid = st.session_state["visitor_id"]
+        
+        if "has_counted" not in st.session_state:
+            c.execute("INSERT OR IGNORE INTO daily_traffic (date, pv_count) VALUES (?, 0)", (today,))
+            c.execute("UPDATE daily_traffic SET pv_count = pv_count + 1 WHERE date=?", (today,))
+            c.execute("INSERT OR REPLACE INTO visitors (visitor_id, last_visit_date) VALUES (?, ?)", (vid, today))
+            conn.commit()
+            st.session_state["has_counted"] = True
+        
+        t_uv = c.execute("SELECT COUNT(*) FROM visitors WHERE last_visit_date=?", (today,)).fetchone()[0]
+        a_uv = c.execute("SELECT COUNT(*) FROM visitors").fetchone()[0]
+        conn.close()
+        return t_uv, a_uv
+    except: return 0, 0
+
+today_uv, total_uv = track_stats()
+
+st.markdown(f"""
+<div class="stats-bar">
+    <div style="text-align: center;"><div>今日 UV</div><div style="font-weight:700; color:#111;">{today_uv}</div></div>
+    <div style="border-left:1px solid #eee; padding-left:25px; text-align: center;"><div>历史 UV</div><div style="font-weight:700; color:#111;">{total_uv}</div></div>
+</div>
+""", unsafe_allow_html=True)
