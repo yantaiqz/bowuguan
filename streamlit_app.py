@@ -308,8 +308,8 @@ st.markdown("<h2 style='text-align: center; margin-top: 10px; color: #111;'>🏛
 
 selected_museum = st.radio(
     "Select Museum",
-    list(MUSEUM_INFO.keys()),
-    index=list(MUSEUM_INFO.keys()).index(st.session_state.current_museum),
+    list(MUSEUM_CONFIG.keys()),
+    index=list(MUSEUM_CONFIG.keys()).index(st.session_state.current_museum),
     horizontal=True,
     label_visibility="collapsed"
 )
@@ -319,7 +319,7 @@ if selected_museum != st.session_state.current_museum:
     st.rerun()
 
 # 仪表盘计算
-m_info = MUSEUM_INFO[st.session_state.current_museum]
+m_info = MUSEUM_CONFIG[st.session_state.current_museum]
 villa_count = st.session_state.total_revenue / m_info["mansion_price"] if m_info["mansion_price"] else 0
 
 dashboard_html = f"""
