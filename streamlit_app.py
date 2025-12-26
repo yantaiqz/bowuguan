@@ -192,37 +192,6 @@ with col_more:
     st.markdown("""<a href="#" class="neal-btn-link"><button class="neal-btn">✨ 更多应用</button></a>""", unsafe_allow_html=True)
 
 # ==========================================
-# 7. 权限校验逻辑
-# ==========================================
-current_time = datetime.datetime.now()
-access_granted = False
-
-if st.session_state.access_status == 'free':
-    time_elapsed = (current_time - st.session_state.start_time).total_seconds()
-    if time_elapsed < FREE_PERIOD_SECONDS:
-        access_granted = True
-        st.info(f"⏳ **免费试用中... 剩余 {int(FREE_PERIOD_SECONDS - time_elapsed)} 秒。**")
-    else:
-        st.session_state.access_status = 'locked'
-        st.rerun()
-elif st.session_state.access_status == 'unlocked':
-    unlock_expiry = st.session_state.unlock_time + datetime.timedelta(hours=ACCESS_DURATION_HOURS)
-    if current_time < unlock_expiry:
-        access_granted = True
-    else:
-        st.session_state.access_status = 'locked'
-        st.rerun()
-
-if not access_granted:
-    st.error("🔒 **试用结束，请输入解锁码继续游戏**")
-    st.info(f"解锁码提示：{UNLOCK_CODE}")
-    with st.form("lock_form"):
-        if st.form_submit_button("解锁") and st.text_input("Code", type="password") == UNLOCK_CODE:
-            st.session_state.access_status, st.session_state.unlock_time = 'unlocked', datetime.datetime.now()
-            st.rerun()
-    st.stop()
-
-# ==========================================
 # 8. 游戏核心逻辑 (内容区)
 # ==========================================
 st.divider()
@@ -369,7 +338,7 @@ with c2:
         t1, t2, t3 = st.tabs([get_txt('pay_wechat'), get_txt('pay_alipay'), get_txt('pay_paypal')])
         with t1: render_pay_tab("WeChat Pay", f"¥{cny_total}", "color-wechat", "wechat_pay.jpg", "WeChat")
         with t2: render_pay_tab("Alipay", f"¥{cny_total}", "color-alipay", "ali_pay.jpg", "Alipay")
-        with t3: render_pay_tab("PayPal", f"${usd_total}", "color-paypal", "paypal.png", "PayPal", "https://paypal.me/yourid")
+        with t3: render_pay_tab("PayPal", f"${usd_total}", "color-paypal", "paypal.png", "PayPal", "https://paypal.me/ytqz")
         
         st.write("")
         if st.button("🎉 " + get_txt('pay_success').split('!')[0], type="primary", use_container_width=True):
