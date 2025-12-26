@@ -263,7 +263,7 @@ dashboard_html = f"""
     </div>
 </div>
 """
-st.markdown(dashboard_html, unsafe_allow_html=True）
+st.markdown(dashboard_html, unsafe_allow_html=True)
 # ==========================================
 # 6. 核心函数
 # ==========================================
