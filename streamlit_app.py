@@ -240,8 +240,7 @@ dashboard_html = f"""
                 </div>
             </div>
         </div>
-    </div>
-</div>
+
 """
 st.markdown(dashboard_html, unsafe_allow_html=True)
 # ==========================================
