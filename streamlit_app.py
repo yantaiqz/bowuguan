@@ -5,381 +5,243 @@ import datetime
 import os
 import time
 import random
+import pandas as pd
 
 # ==========================================
 # 1. 全局配置
 # ==========================================
 st.set_page_config(
-    page_title="Auction Game | 拍卖大师",
-    page_icon="🔨",
+    page_title="Nanjing Museum Treasures | 南博宝藏拍卖",
+    page_icon="🏺",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
 # ==========================================
-# 2. 样式合并 (基础样式 + 游戏样式 + 咖啡加强版)
+# 2. 核心数据：南京博物院20大镇馆之宝
+# ==========================================
+# 注意：文物无价，以下价格为基于同类拍卖品或保险估值的虚拟参考价（单位：人民币）
+# 颐和路民国别墅参考均价：约 8000万 - 1.2亿人民币/栋，这里取整数 1亿/栋 方便计算
+VILLA_PRICE = 100000000 
+
+TREASURES = [
+    {"id": 1, "name": "金兽", "period": "西汉", "desc": "中国考古发现最重的金器，含金量99%，国宝级。", "price": 500000000, "img": "https://img.pconline.com.cn/images/upload/upc/tx/itbbs/1310/22/c9/27798367_1382414707663.jpg"},
+    {"id": 2, "name": "釉里红岁寒三友纹梅瓶", "period": "明洪武", "desc": "现存唯一一件带盖的洪武釉里红梅瓶，举世无双。", "price": 800000000, "img": "https://www.njmuseum.com/api/file/20190527/1558941783515440.jpg"},
+    {"id": 3, "name": "金蝉玉叶", "period": "明代", "desc": "金蝉与玉叶的完美结合，寓意'金枝玉叶'，工艺精湛。", "price": 90000000, "img": "https://p3.itc.cn/q_70/images01/20210518/1429949988e046a09044237f40076a08.jpeg"},
+    {"id": 4, "name": "青瓷神兽尊", "period": "西晋", "desc": "早期青瓷的代表作，造型奇特，不仅是酒器更是艺术品。", "price": 120000000, "img": "https://www.njmuseum.com/api/file/20190527/1558941548483597.jpg"},
+    {"id": 5, "name": "透雕人鸟兽玉饰", "period": "良渚文化", "desc": "良渚玉器工艺的巅峰，神秘的史前图腾。", "price": 60000000, "img": "https://www.njmuseum.com/api/file/20190527/1558941362744318.jpg"},
+    {"id": 6, "name": "银缕玉衣", "period": "东汉", "desc": "全长1.7米，用玉2600余片，银丝编缀，极其罕见。", "price": 300000000, "img": "https://www.njmuseum.com/api/file/20190527/1558941490211100.jpg"},
+    {"id": 7, "name": "人面兽面组合纹玉琮", "period": "良渚文化", "desc": "玉琮之王，刻纹精细到需要在显微镜下才能看清。", "price": 150000000, "img": "https://5b0988e595225.cdn.sohucs.com/images/20190518/31206f6e727e44a4805e6b18a287955c.jpeg"},
+    {"id": 8, "name": "广陵王玺金印", "period": "东汉", "desc": "汉代封王金印，做工精致，是汉代金印中的精品。", "price": 200000000, "img": "https://www.njmuseum.com/api/file/20190527/1558941450299661.jpg"},
+    {"id": 9, "name": "错银铜牛灯", "period": "东汉", "desc": "环保设计的先驱，烟尘可通过牛角吸入腹中。", "price": 180000000, "img": "https://www.njmuseum.com/api/file/20190527/1558941432884100.jpg"},
+    {"id": 10, "name": "竹林七贤与荣启期砖画", "period": "南朝", "desc": "大型模印拼嵌砖画，魏晋风度的最佳实物见证。", "price": 1000000000, "img": "https://www.njmuseum.com/api/file/20190527/1558941566863116.jpg"},
+    {"id": 11, "name": "青花寿山福海纹香炉", "period": "明宣德", "desc": "宣德官窑大器，完整传世仅此一件，故宫也没这么大的。", "price": 450000000, "img": "https://www.njmuseum.com/api/file/20190527/1558941829285375.jpg"},
+    {"id": 12, "name": "鎏金喇嘛塔", "period": "明代", "desc": "阿育王塔风格，通体鎏金，镶嵌宝石。", "price": 80000000, "img": "https://www.njmuseum.com/api/file/20190527/1558941884488921.jpg"},
+    {"id": 13, "name": "青瓷釉下彩盘口壶", "period": "唐代", "desc": "打破了“唐代无釉下彩”的断言，陶瓷史上的里程碑。", "price": 110000000, "img": "https://www.njmuseum.com/api/file/20190527/1558941656843477.jpg"},
+    {"id": 14, "name": "利玛窦《坤舆万国全图》", "period": "明万历", "desc": "现存最早的彩绘世界地图，改变了中国人的世界观。", "price": 600000000, "img": "https://www.njmuseum.com/api/file/20190527/1558941870197598.jpg"},
+    {"id": 15, "name": "徐渭《杂花图卷》", "period": "明代", "desc": "大写意花鸟画的巅峰之作，笔墨淋漓。", "price": 350000000, "img": "https://n.sinaimg.cn/sinakd10111/170/w640h330/20200518/06c3-itvqcca1061858.jpg"},
+    {"id": 16, "name": "沈寿绣品《耶稣像》", "period": "近代", "desc": "仿真绣代表作，曾在巴拿马万国博览会获金奖。", "price": 50000000, "img": "https://www.njmuseum.com/api/file/20190527/1558941940984920.jpg"},
+    {"id": 17, "name": "大报恩寺琉璃拱门", "period": "明代", "desc": "明代世界七大奇迹之一的残留组件，极尽奢华。", "price": 200000000, "img": "https://img.mp.itc.cn/upload/20170518/48624190c1284a20b72a6b47e53a2992_th.jpg"},
+    {"id": 18, "name": "芙蓉石蟠螭耳盖炉", "period": "清乾隆", "desc": "整块芙蓉石雕刻而成，乾隆御用，粉嫩通透。", "price": 130000000, "img": "https://www.njmuseum.com/api/file/20190527/1558941913988456.jpg"},
+    {"id": 19, "name": "雕漆剔红山水人物纹盒", "period": "明永乐", "desc": "永乐宫廷漆器的标准器，堆漆肥厚，色泽纯正。", "price": 40000000, "img": "https://www.njmuseum.com/api/file/20190527/1558941797587121.jpg"},
+    {"id": 20, "name": "建元四年金兽", "period": "西汉", "desc": "底座刻有铭文，研究汉代金银工艺的重要标准器。", "price": 160000000, "img": "https://p4.itc.cn/images01/20201201/2984852c2e0b4676b6680a65bc04e0e5.jpeg"},
+]
+
+# ==========================================
+# 3. 样式表 (CSS)
 # ==========================================
 st.markdown("""
 <style>
     /* --- 基础设置 --- */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header[data-testid="stHeader"] {display: none;}
-    .stApp { background-color: #FFFFFF !important; }
-
-    /* --- 游戏专用样式 --- */
-    .game-container {
-        max-width: 800px;
-        margin: 0 auto;
-        text-align: center;
-        padding: 20px;
-    }
-    .item-title {
-        font-family: 'Inter', sans-serif;
-        font-size: 2.5rem;
-        font-weight: 800;
-        color: #111;
-        margin-bottom: 10px;
-    }
-    .item-image {
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    .stApp { background-color: #f5f5f7 !important; color: #1d1d1f; }
+    
+    /* --- 卡片容器 --- */
+    .treasure-card {
+        background: white;
+        border-radius: 16px;
+        padding: 0;
         margin-bottom: 20px;
-        max-height: 400px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
+        border: 1px solid #e5e5e5;
+        overflow: hidden;
+    }
+    .treasure-card:hover { transform: translateY(-5px); box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
+    
+    /* --- 图片样式 --- */
+    .t-img-box {
+        height: 200px;
+        width: 100%;
+        overflow: hidden;
+        background: #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .t-img {
+        width: 100%;
+        height: 100%;
         object-fit: cover;
     }
-    .score-display {
-        font-size: 1.2rem;
-        color: #666;
-        margin-bottom: 20px;
-        font-weight: 600;
-    }
-    .price-reveal {
-        font-size: 3rem;
-        font-weight: 900;
-        color: #2AAD67;
-        animation: fadeIn 0.5s ease-in;
-    }
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
 
-    /* --- 右上角按钮 --- */
-    .neal-btn {
-        font-family: 'Inter', sans-serif; background: #fff;
-        border: 1px solid #e5e7eb; color: #111; font-weight: 600;
-        padding: 8px 16px; border-radius: 8px; cursor: pointer;
-        transition: all 0.2s; display: inline-flex; align-items: center;
-        justify-content: center; text-decoration: none !important;
-        width: 100%;
-    }
-    .neal-btn:hover { background: #f9fafb; transform: translateY(-1px); }
-    .neal-btn-link { text-decoration: none; width: 100%; display: block; }
-
-    /* --- 咖啡打赏 & 统计模块 (保留原逻辑) --- */
-    .metric-container { display: flex; justify-content: center; gap: 20px; margin-top: 20px; padding: 10px; background-color: #f8f9fa; border-radius: 10px; border: 1px solid #e9ecef; }
-    .metric-box { text-align: center; }
-    .pay-amount-display { font-family: 'JetBrains Mono', monospace; font-size: 1.8rem; font-weight: 800; margin: 10px 0; color: #d9534f;}
-    .pay-label { font-size: 0.85rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
-    .color-wechat { color: #2AAD67; }
-    .color-alipay { color: #1677ff; }
-    .color-paypal { color: #003087; }
+    /* --- 内容样式 --- */
+    .t-content { padding: 15px; }
+    .t-title { font-size: 1.1rem; font-weight: 800; color: #111; margin-bottom: 4px; }
+    .t-period { font-size: 0.8rem; color: #86868b; background: #f5f5f7; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px;}
+    .t-desc { font-size: 0.85rem; color: #555; height: 4.5em; overflow: hidden; text-overflow: ellipsis; line-height: 1.5; }
+    .t-price { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; color: #d9534f; margin: 10px 0; }
     
-    /* 按钮微调 */
-    div[data-testid="stButton"] button { border-radius: 8px; }
-    [data-testid="button-lang_switch"] { position: fixed; top: 20px; right: 120px; z-index: 999; width: 80px !important; }
+    /* --- 状态标签 --- */
+    .sold-tag {
+        background: #e5e7eb; color: #9ca3af; font-weight: bold;
+        text-align: center; padding: 10px; border-radius: 8px;
+        margin-top: 10px;
+    }
+
+    /* --- 顶部仪表盘 --- */
+    .dashboard {
+        position: sticky; top: 0; z-index: 100;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(20px);
+        padding: 15px 20px;
+        border-bottom: 1px solid #e5e5e5;
+        margin: -1rem -1rem 20px -1rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+    .villa-icon { font-size: 2rem; margin-right: 10px; }
+    .dash-val { font-size: 1.8rem; font-weight: 900; color: #d9534f; font-family: 'Inter', sans-serif; }
+    .dash-label { font-size: 0.8rem; color: #86868b; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* --- 按钮样式覆盖 --- */
+    div[data-testid="stButton"] button {
+        width: 100%;
+        border-radius: 8px;
+        font-weight: 600;
+        border: none;
+        transition: all 0.2s;
+    }
+    div[data-testid="stButton"] button:hover {
+        transform: scale(1.02);
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. 游戏数据 (模拟数据)
+# 4. 状态管理
 # ==========================================
-GAME_ITEMS = [
-    {"id": 1, "name": "Banksy's 'Girl with Balloon'", "price": 25400000, "img": "https://upload.wikimedia.org/wikipedia/en/0/06/GirlWithBalloon.jpg"},
-    {"id": 2, "name": "Action Comics #1 (Superman)", "price": 3250000, "img": "https://upload.wikimedia.org/wikipedia/en/5/5a/Action_Comics_1.jpg"},
-    {"id": 3, "name": "Steve Jobs' Old Birkenstocks", "price": 218750, "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Birkenstock_Boston_suede.jpg/640px-Birkenstock_Boston_suede.jpg"},
-    {"id": 4, "name": "Solid Gold LEGO Brick", "price": 15000, "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Lego_Brick_4x2.svg/640px-Lego_Brick_4x2.svg.png"},
-    {"id": 5, "name": "Michael Jordan's 'Last Dance' Jersey", "price": 10100000, "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Jordan_lipofsky.jpg/437px-Jordan_lipofsky.jpg"},
-]
+if 'sold_items' not in st.session_state:
+    st.session_state.sold_items = set() # 存储已卖出的ID
+if 'total_revenue' not in st.session_state:
+    st.session_state.total_revenue = 0
 
 # ==========================================
-# 4. 状态初始化
+# 5. 顶部仪表盘 (实时计算)
 # ==========================================
-if 'start_time' not in st.session_state:
-    st.session_state.start_time = datetime.datetime.now()
-    st.session_state.access_status = 'free'
-    st.session_state.unlock_time = None
-if 'language' not in st.session_state:
-    st.session_state.language = 'zh'
-if 'coffee_num' not in st.session_state:
-    st.session_state.coffee_num = 1
-if 'visitor_id' not in st.session_state:
-    st.session_state["visitor_id"] = str(uuid.uuid4())
-
-# --- 游戏状态 ---
-if 'game_score' not in st.session_state:
-    st.session_state.game_score = 0
-if 'round_index' not in st.session_state:
-    st.session_state.round_index = 0
-if 'round_state' not in st.session_state:
-    st.session_state.round_state = 'guessing' # guessing, result, end
-if 'shuffled_items' not in st.session_state:
-    items = GAME_ITEMS.copy()
-    random.shuffle(items)
-    st.session_state.shuffled_items = items
-
-# ==========================================
-# 5. 常量与文本配置
-# ==========================================
-FREE_PERIOD_SECONDS = 600 # 增加到10分钟以便体验游戏
-ACCESS_DURATION_HOURS = 24
-UNLOCK_CODE = "vip888"
-DB_FILE = os.path.join(os.path.expanduser("~/"), "visit_stats.db")
-
-lang_texts = {
-    'zh': {
-        'coffee_desc': '如果这个游戏让你开心了，欢迎支持老登的创作。',
-        'coffee_btn': "☕ 请开发者喝咖啡",
-        'coffee_title': " ",
-        'coffee_amount': "请输入打赏杯数",
-        'pay_wechat': '微信支付', 'pay_alipay': '支付宝', 'pay_paypal': '贝宝',
-        'pay_success': "收到！感谢打赏。❤️",
-        'game_title': '拍卖价格猜猜猜',
-        'guess_btn': '出价！',
-        'next_btn': '下一个',
-        'result_perfect': '太神了！完美出价！',
-        'result_good': '很接近了！',
-        'result_bad': '差得有点远...',
-        'actual_price': '实际成交价',
-        'your_guess': '你的估价',
-        'score': '总分',
-        'game_over': '游戏结束',
-        'restart': '再玩一次'
-    },
-    'en': {
-        'coffee_desc': 'If you enjoyed this game, support is appreciated.',
-        'coffee_btn': "☕ Buy me a coffee",
-        'coffee_title': " ",
-        'coffee_amount': "Enter Coffee Count",
-        'pay_wechat': 'WeChat', 'pay_alipay': 'Alipay', 'pay_paypal': 'PayPal',
-        'pay_success': "Received! Thanks! ❤️",
-        'game_title': 'The Auction Game',
-        'guess_btn': 'Make Bid',
-        'next_btn': 'Next Item',
-        'result_perfect': 'Perfect Bid!',
-        'result_good': 'Pretty Close!',
-        'result_bad': 'Way off...',
-        'actual_price': 'Sold For',
-        'your_guess': 'Your Bid',
-        'score': 'Score',
-        'game_over': 'Game Over',
-        'restart': 'Play Again'
-    }
-}
-current_text = lang_texts[st.session_state.language]
-
-# ==========================================
-# 6. 右上角功能区
-# ==========================================
-col_empty, col_lang, col_more = st.columns([0.7, 0.1, 0.2])
-with col_lang:
-    l_btn = "En" if st.session_state.language == 'zh' else "中"
-    if st.button(l_btn, key="lang_switch"):
-        st.session_state.language = 'en' if st.session_state.language == 'zh' else 'zh'
-        st.rerun()
-with col_more:
-    st.markdown("""<a href="#" class="neal-btn-link"><button class="neal-btn">✨ 更多应用</button></a>""", unsafe_allow_html=True)
-
-# ==========================================
-# 8. 游戏核心逻辑 (内容区)
-# ==========================================
-st.divider()
-
-def calculate_score(guess, actual):
-    # 简单的评分逻辑：误差越小分越高
-    diff_percent = abs(guess - actual) / actual
-    if diff_percent < 0.05: return 1000
-    if diff_percent > 1: return 0
-    return int((1 - diff_percent) * 1000)
-
-# 游戏容器
-with st.container():
-    # 标题栏
-    st.markdown(f"<h1 style='text-align: center; margin-bottom: 5px;'>{current_text['game_title']}</h1>", unsafe_allow_html=True)
-    st.markdown(f"<div class='score-display' style='text-align:center;'>{current_text['score']}: <span style='color:#2AAD67'>{st.session_state.game_score}</span></div>", unsafe_allow_html=True)
-
-    # 检查是否游戏结束
-    if st.session_state.round_index >= len(st.session_state.shuffled_items):
-        st.markdown(f"<h2 style='text-align:center;'>🎉 {current_text['game_over']}!</h2>", unsafe_allow_html=True)
-        st.markdown(f"<h3 style='text-align:center;'>Final Score: {st.session_state.game_score}</h3>", unsafe_allow_html=True)
-        if st.button(current_text['restart'], use_container_width=True, type="primary"):
-            st.session_state.round_index = 0
-            st.session_state.game_score = 0
-            st.session_state.round_state = 'guessing'
-            random.shuffle(st.session_state.shuffled_items)
-            st.rerun()
-    else:
-        # 获取当前物品
-        current_item = st.session_state.shuffled_items[st.session_state.round_index]
-
-        # 布局：左图右操作，或上下结构
-        c_game = st.container()
-        
-        with c_game:
-            # 图片显示
-            st.markdown(f"""
-            <div style="display:flex; justify-content:center;">
-                <img src="{current_item['img']}" class="item-image" style="max-height: 300px; max-width: 100%;">
-            </div>
-            <div class="item-title" style="text-align:center; font-size: 1.5rem;">{current_item['name']}</div>
-            """, unsafe_allow_html=True)
-
-            st.write("") # Spacer
-
-            # 猜测阶段
-            if st.session_state.round_state == 'guessing':
-                # 使用 Number Input 结合 Slider 增强体验
-                col_input, col_space = st.columns([1, 0.01]) # Centering trick
-                
-                guess_val = st.number_input(
-                    f"{current_text['your_guess']} ($)", 
-                    min_value=0, 
-                    value=1000, 
-                    step=100,
-                    format="%d"
-                )
-                
-                if st.button(current_text['guess_btn'], type="primary", use_container_width=True):
-                    st.session_state.last_guess = guess_val
-                    st.session_state.round_score = calculate_score(guess_val, current_item['price'])
-                    st.session_state.game_score += st.session_state.round_score
-                    st.session_state.round_state = 'result'
-                    st.rerun()
-
-            # 结果阶段
-            elif st.session_state.round_state == 'result':
-                actual = current_item['price']
-                guess = st.session_state.last_guess
-                score = st.session_state.round_score
-                
-                # 评价文案
-                if score >= 900: comment = current_text['result_perfect']
-                elif score >= 500: comment = current_text['result_good']
-                else: comment = current_text['result_bad']
-
-                st.markdown(f"""
-                <div style="text-align: center; background: #f0fdf4; padding: 20px; border-radius: 12px; border: 1px solid #bbf7d0;">
-                    <div style="color: #666; font-size: 0.9rem;">{current_text['actual_price']}</div>
-                    <div class="price-reveal">${actual:,}</div>
-                    <div style="margin-top: 10px; color: #444;">{current_text['your_guess']}: ${guess:,}</div>
-                    <div style="margin-top: 15px; font-weight: bold; font-size: 1.2rem; color: #d97706;">+ {score} pts</div>
-                    <div style="color: #888;">{comment}</div>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                st.write("")
-                if st.button(current_text['next_btn'], type="primary", use_container_width=True):
-                    st.session_state.round_index += 1
-                    st.session_state.round_state = 'guessing'
-                    st.rerun()
-
-# ==========================================
-# 9. 咖啡打赏与统计 (融合原逻辑)
-# ==========================================
-
-def get_txt(key): return lang_texts[st.session_state.language][key]
-
-st.markdown("<br><br>", unsafe_allow_html=True)    
-c1, c2, c3 = st.columns([1, 2, 1])
-
-with c2:
-    @st.dialog(" " + get_txt('coffee_title'), width="small")
-    def show_coffee_window():
-        st.markdown(f"""<div style="text-align:center; color:#666; margin-bottom:15px;">{get_txt('coffee_desc')}</div>""", unsafe_allow_html=True)
-        
-        presets = [("☕", 1), ("🍗", 3), ("🚀", 5)]
-        def set_val(n): st.session_state.coffee_num = n
-        
-        cols = st.columns(3, gap="small")
-        for i, (icon, num) in enumerate(presets):
-            with cols[i]:
-                if st.button(f"{icon} {num}", use_container_width=True, key=f"p_btn_{i}"): set_val(num)
-        
-        st.write("")
-        col_amount, col_total = st.columns([1, 1], gap="small")
-        with col_amount: 
-            cnt = st.number_input(get_txt('coffee_amount'), 1, 100, step=1, key='coffee_num')
-        
-        cny_total = cnt * 10
-        usd_total = cnt * 2
-
-        def render_pay_tab(title, amount_str, color_class, img_path, qr_data_suffix, link_url=None):
-            with st.container(border=True):
-                st.markdown(f"""
-                    <div style="text-align: center; padding-bottom: 10px;">
-                        <div class="pay-label {color_class}">{title}</div>
-                        <div class="pay-amount-display {color_class}">{amount_str}</div>
-                    </div>
-                """, unsafe_allow_html=True)
-                c_img_1, c_img_2, c_img_3 = st.columns([1, 4, 1])
-                with c_img_2:
-                    qr_data = f"Donate_{cny_total}_{qr_data_suffix}"
-                    if link_url: qr_data = link_url
-                    st.image(f"https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={qr_data}", use_container_width=True)
-                
-                if link_url:
-                    st.write("")
-                    st.link_button(f"👉 Pay {amount_str}", link_url, type="primary", use_container_width=True)
-                else:
-                    st.markdown(f"""<div style="text-align: center; padding-top: 10px; font-size:0.8rem; color:#999;">请使用手机扫描上方二维码</div>""", unsafe_allow_html=True)
-                    
-        st.write("")
-        t1, t2, t3 = st.tabs([get_txt('pay_wechat'), get_txt('pay_alipay'), get_txt('pay_paypal')])
-        with t1: render_pay_tab("WeChat Pay", f"¥{cny_total}", "color-wechat", "wechat_pay.jpg", "WeChat")
-        with t2: render_pay_tab("Alipay", f"¥{cny_total}", "color-alipay", "ali_pay.jpg", "Alipay")
-        with t3: render_pay_tab("PayPal", f"${usd_total}", "color-paypal", "paypal.png", "PayPal", "https://paypal.me/ytqz")
-        
-        st.write("")
-        if st.button("🎉 " + get_txt('pay_success').split('!')[0], type="primary", use_container_width=True):
-            st.balloons()
-            time.sleep(1.5)
-            st.rerun()
-
-    if st.button(get_txt('coffee_btn'), use_container_width=True):
-        show_coffee_window()
-
-# ==========================================
-# 10. 数据库统计逻辑
-# ==========================================
-def track_stats():
-    try:
-        conn = sqlite3.connect(DB_FILE, check_same_thread=False)
-        c = conn.cursor()
-        c.execute('''CREATE TABLE IF NOT EXISTS daily_traffic (date TEXT PRIMARY KEY, pv_count INTEGER DEFAULT 0)''')
-        c.execute('''CREATE TABLE IF NOT EXISTS visitors (visitor_id TEXT PRIMARY KEY, last_visit_date TEXT)''')
-        today = datetime.datetime.utcnow().date().isoformat()
-        vid = st.session_state["visitor_id"]
-        
-        if "has_counted" not in st.session_state:
-            c.execute("INSERT OR IGNORE INTO daily_traffic (date, pv_count) VALUES (?, 0)", (today,))
-            c.execute("UPDATE daily_traffic SET pv_count = pv_count + 1 WHERE date=?", (today,))
-            c.execute("INSERT OR REPLACE INTO visitors (visitor_id, last_visit_date) VALUES (?, ?)", (vid, today))
-            conn.commit()
-            st.session_state["has_counted"] = True
-        
-        t_uv = c.execute("SELECT COUNT(*) FROM visitors WHERE last_visit_date=?", (today,)).fetchone()[0]
-        a_uv = c.execute("SELECT COUNT(*) FROM visitors").fetchone()[0]
-        conn.close()
-        return t_uv, a_uv
-    except:
-        return 0, 0
-
-today_uv, total_uv = track_stats()
+villa_count = st.session_state.total_revenue / VILLA_PRICE
 
 st.markdown(f"""
-<div style="display: flex; justify-content: center; gap: 25px; margin-top: 40px; padding: 15px; color: #999; font-size: 0.8rem;">
-    <div>今日访客: <b>{today_uv}</b></div>
-    <div>历史访客: <b>{total_uv}</b></div>
+<div class="dashboard">
+    <div style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto;">
+        <div style="display: flex; align-items: center;">
+            <div style="font-size: 2.2rem; margin-right: 15px;">🏛️</div>
+            <div>
+                <div style="font-size: 1.2rem; font-weight: 800; color: #111;">南博宝藏拍卖行</div>
+                <div style="font-size: 0.8rem; color: #888;">NANJING MUSEUM AUCTION</div>
+            </div>
+        </div>
+        
+        <div style="text-align: right; display: flex; gap: 40px;">
+            <div>
+                <div class="dash-val">¥{st.session_state.total_revenue / 100000000:.2f}亿</div>
+                <div class="dash-label">当前拍卖总额</div>
+            </div>
+            <div style="display: flex; align-items: center;">
+                <div class="villa-icon">🏡</div>
+                <div style="text-align: left;">
+                    <div class="dash-val" style="color: #2AAD67;">× {villa_count:.1f}栋</div>
+                    <div class="dash-label">折合颐和路民国别墅</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# ==========================================
+# 6. 主内容区 (Grid Layout)
+# ==========================================
+
+# 辅助函数：格式化金额
+def format_price(price):
+    if price >= 100000000:
+        return f"{price/100000000:.1f}亿"
+    elif price >= 10000:
+        return f"{price/10000:.0f}万"
+    return str(price)
+
+# 拍卖逻辑函数
+def sell_item(item_id, price):
+    if item_id not in st.session_state.sold_items:
+        st.session_state.sold_items.add(item_id)
+        st.session_state.total_revenue += price
+        st.toast(f"🔨 成交！入账 ¥{format_price(price)}", icon="💰")
+        # 强制刷新页面以更新UI
+        time.sleep(0.5) 
+        st.rerun()
+
+# 布局：每行4个
+cols_per_row = 4
+rows = [TREASURES[i:i + cols_per_row] for i in range(0, len(TREASURES), cols_per_row)]
+
+for row_items in rows:
+    cols = st.columns(cols_per_row)
+    for idx, item in enumerate(row_items):
+        with cols[idx]:
+            is_sold = item['id'] in st.session_state.sold_items
+            
+            # 卡片 HTML
+            st.markdown(f"""
+            <div class="treasure-card">
+                <div class="t-img-box">
+                    <img src="{item['img']}" class="t-img" style="filter: {'grayscale(100%)' if is_sold else 'none'};">
+                </div>
+                <div class="t-content">
+                    <div class="t-title">{item['name']}</div>
+                    <div class="t-period">{item['period']}</div>
+                    <div class="t-desc" title="{item['desc']}">{item['desc']}</div>
+                    <div class="t-price">¥{format_price(item['price'])}</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # 按钮逻辑
+            if is_sold:
+                st.button("🚫 已私有化", key=f"btn_sold_{item['id']}", disabled=True, use_container_width=True)
+            else:
+                # 使用回调函数处理点击
+                st.button(
+                    "🔨 立即拍卖", 
+                    key=f"btn_{item['id']}", 
+                    type="primary", 
+                    use_container_width=True,
+                    on_click=sell_item,
+                    args=(item['id'], item['price'])
+                )
+
+# ==========================================
+# 7. 底部重置区
+# ==========================================
+st.divider()
+c1, c2, c3 = st.columns([1, 2, 1])
+with c2:
+    if st.button("🔄 重置所有拍卖记录", type="secondary", use_container_width=True):
+        st.session_state.sold_items = set()
+        st.session_state.total_revenue = 0
+        st.rerun()
+
+st.markdown("""
+<div style="text-align: center; color: #999; margin-top: 20px; font-size: 0.8rem;">
+    注：本页面所有文物价格均为虚拟估值，仅供娱乐与价值感知参考。<br>
+    民国别墅均价参考南京颐和路片区2024年挂牌行情。
 </div>
 """, unsafe_allow_html=True)
