@@ -239,7 +239,6 @@ dashboard_html = f"""
                     <div class="dash-label">折合颐和路民国别墅</div>
                 </div>
             </div>
-            
         </div>
     </div>
 </div>
