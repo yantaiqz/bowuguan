@@ -289,7 +289,7 @@ if selected_museum != st.session_state.current_museum:
 
 # 仪表盘计算
 m_info = MANSION_CONFIG[st.session_state.current_museum]
-villa_count = st.session_state.total_revenue / m_info["mansion_price"] if m_info["mansion_price"] else 0
+villa_count = st.session_state.total_revenue / m_info["price"] if m_info["price"] else 0
 
 dashboard_html = f"""
 <div class="dashboard">
