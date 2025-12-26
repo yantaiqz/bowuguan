@@ -1,6 +1,6 @@
 import streamlit as st
 import time
-import random
+import rando
 
 # ==========================================
 # 1. 全局配置与沉浸式 UI 注入
