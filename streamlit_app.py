@@ -242,7 +242,7 @@ st.markdown("""
         object-fit: cover;             /* 4. 关键：裁剪图片以填满容器，绝不压缩变形 */
         object-position: center center;/* 5. 关键：确保文物主体（通常在中间）居中 */
         
-        transform: scale(1.1);         /* 6. 技巧：默认放大110%，切除图片自带的白边 */
+        transform: scale(1.3);         /* 6. 技巧：默认放大110%，切除图片自带的白边 */
         
         border: 3px solid white;       /* 装饰：白色描边 */
         box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* 装饰：立体阴影 */
