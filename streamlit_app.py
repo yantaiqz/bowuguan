@@ -8,23 +8,26 @@ import random
 import base64
 
 # ==========================================
-# 1. 全局配置 & 路径修复（极简版：移除冗余注释，简化路径逻辑）
+# 1. 全局配置 & 路径修复（优化：更简洁的路径处理）
 # ==========================================
 st.set_page_config(
-    page_title="国宝拍卖行",
+    page_title="National Treasures Auction | 国宝拍卖行",
     page_icon="🏺",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# 路径兼容 & 目录创建（极简写法）
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__)) if '__file__' in locals() else os.getcwd()
+# ------------- 修复：路径兼容 & 动态创建目录 -------------
+try:
+    PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+except:
+    PROJECT_ROOT = os.getcwd()
 BASE_IMG_ROOT = os.path.join(PROJECT_ROOT, "img")
-MANSION_IMG_ROOT = os.path.join(BASE_IMG_ROOT, "mansion")
-for dir_path in [BASE_IMG_ROOT, MANSION_IMG_ROOT]:
-    os.makedirs(dir_path, exist_ok=True)
+MANSION_IMG_ROOT = os.path.join(BASE_IMG_ROOT, "mansion")  # 明确别墅图片目录
+os.makedirs(BASE_IMG_ROOT, exist_ok=True)
+os.makedirs(MANSION_IMG_ROOT, exist_ok=True)  # 确保mansion目录存在
 
-# 博物馆名称映射（保持核心功能）
+# 定义博物馆名称映射
 MUSEUM_NAME_MAP = {
     "南京博物院": "nanjing",
     "三星堆博物馆": "sanxingdui",
@@ -32,20 +35,42 @@ MUSEUM_NAME_MAP = {
     "上海博物馆": "shanghai",
     "陕西历史博物馆": "xian"
 }
+MUSEUM_NAME_MAP_REVERSE = {v: k for k, v in MUSEUM_NAME_MAP.items()}
 
-# 动态创建博物馆图片目录
+# 动态创建所有博物馆的图片目录
 for museum_pinyin in MUSEUM_NAME_MAP.values():
-    os.makedirs(os.path.join(BASE_IMG_ROOT, museum_pinyin), exist_ok=True)
+    museum_img_dir = os.path.join(BASE_IMG_ROOT, museum_pinyin)
+    os.makedirs(museum_img_dir, exist_ok=True)
 
 # ==========================================
-# 2. 核心数据（保持不变，移除冗余注释）
+# 2. 核心数据（优化：图片路径容错、数据格式统一）
 # ==========================================
 MANSION_CONFIG = {
-    "南京博物院": {"mansion_name": "颐和路民国别墅", "price": 100000000, "mansion_img": os.path.join(MANSION_IMG_ROOT, "1.jpeg")},
-    "三星堆博物馆": {"mansion_name": "成都麓山国际豪宅", "price": 50000000, "mansion_img": os.path.join(MANSION_IMG_ROOT, "5.jpeg")},
-    "中国国家博物馆": {"mansion_name": "什刹海四合院", "price": 150000000, "mansion_img": os.path.join(MANSION_IMG_ROOT, "2.jpeg")},
-    "上海博物馆": {"mansion_name": "愚园路老洋房", "price": 200000000, "mansion_img": os.path.join(MANSION_IMG_ROOT, "3.jpeg")},
-    "陕西历史博物馆": {"mansion_name": "曲江池畔大平层", "price": 3000000, "mansion_img": os.path.join(MANSION_IMG_ROOT, "4.jpeg")}
+    "南京博物院": {
+        "mansion_name": "颐和路民国别墅", 
+        "price": 100000000, 
+        "mansion_img": os.path.join(MANSION_IMG_ROOT, "1.jpeg")  # 绝对路径更稳定
+    },
+    "三星堆博物馆": {
+        "mansion_name": "成都麓山国际豪宅", 
+        "price": 50000000, 
+        "mansion_img": os.path.join(MANSION_IMG_ROOT, "5.jpeg")
+    },
+    "中国国家博物馆": {
+        "mansion_name": "什刹海四合院", 
+        "price": 150000000, 
+        "mansion_img": os.path.join(MANSION_IMG_ROOT, "2.jpeg")
+    },
+    "上海博物馆": {
+        "mansion_name": "愚园路老洋房", 
+        "price": 200000000, 
+        "mansion_img": os.path.join(MANSION_IMG_ROOT, "3.jpeg")
+    },
+    "陕西历史博物馆": {
+        "mansion_name": "曲江池畔大平层", 
+        "price": 3000000, 
+        "mansion_img": os.path.join(MANSION_IMG_ROOT, "4.jpeg")
+    }
 }
 
 MUSEUM_TREASURES = {
@@ -60,7 +85,7 @@ MUSEUM_TREASURES = {
         {"id": "nj_8", "name": "广陵王玺", "period": "东汉", "desc": "汉代封王金印精品", "price": 200000000, "img": ""},
         {"id": "nj_9", "name": "错银铜牛灯", "period": "东汉", "desc": "汉代环保黑科技", "price": 180000000, "img": ""},
         {"id": "nj_10", "name": "青瓷神兽尊", "period": "西晋", "desc": "造型奇特的早期青瓷", "price": 120000000, "img": ""},
-        {"id": "nj_11", "name": "玉琮", "period": "良渚", "desc": "史前玉器巅峰", "price": 60000000, "img": ""},
+        {"id": "nj_11", "name": "透雕人鸟兽玉饰", "period": "良渚", "desc": "史前玉器巅峰", "price": 60000000, "img": ""},
         {"id": "nj_12", "name": "鎏金喇嘛塔", "period": "明代", "desc": "通体鎏金镶宝石", "price": 80000000, "img": ""},
         {"id": "nj_13", "name": "青花寿山福海炉", "period": "明宣德", "desc": "宣德官窑完整大器", "price": 450000000, "img": ""},
         {"id": "nj_14", "name": "徐渭《杂花图》", "period": "明代", "desc": "大写意花鸟巅峰", "price": 350000000, "img": ""},
@@ -71,7 +96,7 @@ MUSEUM_TREASURES = {
     ],
     "sanxingdui": [
         {"id": "sx_1", "name": "青铜大立人", "period": "商代", "desc": "世界铜像之王", "price": 2000000000, "img": "https://picsum.photos/seed/sx1/300/300"},
-        {"id": "sx_2", "name": "青铜神树", "period": "商代", "desc": "通天神树", "price": 1300000000, "img": "https://picsum.photos/seed/sx2/300/300"},
+        {"id": "sx_2", "name": "青铜神树", "period": "商代", "desc": "通天神树", "price": 2500000000, "img": "https://picsum.photos/seed/sx2/300/300"},
         {"id": "sx_3", "name": "金面具", "period": "商代", "desc": "半张黄金脸", "price": 800000000, "img": "https://picsum.photos/seed/sx3/300/300"},
         {"id": "sx_4", "name": "青铜纵目面具", "period": "商代", "desc": "千里眼顺风耳", "price": 1200000000, "img": "https://picsum.photos/seed/sx4/300/300"},
         {"id": "sx_5", "name": "太阳轮", "period": "商代", "desc": "形似方向盘", "price": 600000000, "img": "https://picsum.photos/seed/sx5/300/300"},
@@ -152,19 +177,22 @@ MUSEUM_TREASURES = {
 }
 
 # ==========================================
-# 3. 工具函数（极简版：保留核心功能，移除冗余注释）
+# 3. 工具函数（优化：增加图片占位、容错增强）
 # ==========================================
 def get_base64_image(image_path):
+    """将本地图片转换为 Base64 字符串（增加异常处理）"""
     try:
         if not os.path.exists(image_path) or not os.path.isfile(image_path):
             return None
         with open(image_path, "rb") as img_file:
-            return f"data:image/jpeg;base64,{base64.b64encode(img_file.read()).decode()}"
+            b64_data = base64.b64encode(img_file.read()).decode()
+        return f"data:image/jpeg;base64,{b64_data}"
     except Exception as e:
         print(f"读取图片失败 {image_path}：{e}")
         return None
 
 def format_price(price):
+    """格式化价格显示（亿/万单位转换）"""
     if price >= 100000000: 
         return f"{price/100000000:.1f}亿"
     elif price >= 10000: 
@@ -172,79 +200,192 @@ def format_price(price):
     return str(price)
 
 # ==========================================
-# 4. 通用图片加载逻辑（保持不变，简化循环写法）
+# 4. 通用图片加载逻辑（优化：占位图统一、容错更强）
 # ==========================================
 for museum_cn, museum_pinyin in MUSEUM_NAME_MAP.items():
     treasures = MUSEUM_TREASURES.get(museum_pinyin, [])
+    if not treasures:
+        continue
+    
     current_museum_dir = os.path.join(BASE_IMG_ROOT, museum_pinyin)
+    
     for idx, treasure in enumerate(treasures, start=1):
-        img_names = [f"{idx}.jpeg", f"{idx}.jpg", f"[] ({idx}).jpeg", f"[] ({idx}).jpg"]
+        img_names = [
+            f"{idx}.jpeg",
+            f"{idx}.jpg",
+            f"[] ({idx}).jpeg",
+            f"[] ({idx}).jpg"
+        ]
         b64_str = None
+        
         for img_name in img_names:
-            b64_str = get_base64_image(os.path.join(current_museum_dir, img_name))
+            img_path = os.path.join(current_museum_dir, img_name)
+            b64_str = get_base64_image(img_path)
             if b64_str:
                 break
-        treasure["img"] = b64_str if b64_str else f"https://picsum.photos/seed/{treasure['id'][:2]}_{idx}_unique/300/300"
+        
+        # 优化：占位图种子更稳定，避免重复
+        if b64_str:
+            treasure["img"] = b64_str
+        else:
+            prefix = treasure['id'][:2]
+            treasure["img"] = f"https://picsum.photos/seed/{prefix}_{idx}_unique/300/300"
 
 # ==========================================
-# 5. 样式优化（核心：极简风格，压缩间距，移除冗余样式）
+# 5. 样式优化（核心：统一视觉、增加层级、修复冲突）
 # ==========================================
 st.markdown("""
 <style>
-    /* 基础极简设置：隐藏冗余元素，简化背景 */
-    #MainMenu, footer, [data-testid="stHeader"] {visibility: hidden !important;}
-    .stApp { background-color: #f8f9fa !important; color: #212529; padding-top: 0 !important; }
+    /* --- 基础设置 --- */
+    #MainMenu {visibility: hidden !important;}
+    footer {visibility: hidden !important;}
+    [data-testid="stHeader"] {display: none !important;}
+    .stApp { 
+        background-color: #f5f5f7 !important; 
+        color: #1d1d1f; 
+        padding-top: 0 !important; 
+    }
     .block-container { 
-        padding-top: 0.5rem !important; 
-        max-width: 1300px !important; 
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
+        padding-top: 1rem !important; 
+        max-width: 1400px !important; 
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
     }
 
-    /* 仪表盘：简化样式，压缩内边距 */
+    /* --- 外链按钮样式 --- */
+    .neal-btn {
+        font-family: 'Inter', sans-serif; 
+        background: #fff;
+        border: 1px solid #e5e7eb; 
+        color: #111; 
+        font-weight: 600;
+        padding: 8px 16px; 
+        border-radius: 8px; 
+        cursor: pointer;
+        transition: all 0.2s; 
+        display: inline-flex; 
+        align-items: center;
+        text-decoration: none !important;
+        width: 100%; 
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .neal-btn:hover { 
+        background: #f9fafb; 
+        transform: translateY(-1px); 
+    }
+    .neal-btn-link { 
+        text-decoration: none; 
+        width: 100%; 
+        display: block; 
+    }
+
+    /* --- 仪表盘 (优化：更精致的卡片、间距调整) --- */
     .dashboard {
-        background: #ffffff;
-        padding: 15px 20px !important;
-        border-radius: 12px;
-        margin-bottom: 15px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-        height: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        padding: 20px 30px !important;
+        border-bottom: 1px solid #e5e5e5;
+        border-radius: 16px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        transition: all 0.1s ease;
     }
 
-    /* 明细面板：极简风格，减少间距 */
+    /* --- 明细面板样式（优化：更强的视觉层级、间距调整） --- */
     .detail-panel {
         background: #ffffff;
-        border-radius: 12px;
-        padding: 15px 20px;
-        margin-bottom: 15px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-        border: 1px solid #e9ecef;
+        border-radius: 16px;
+        padding: 25px 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+        border: 1px solid #e5e7eb;
     }
-    .detail-title { font-size: 1.1rem; font-weight: 600; color: #212529; margin-bottom: 12px; }
-    .detail-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    .detail-table th { background-color: #f8f9fa; color: #6c757d; padding: 8px 10px; text-align: left; border-bottom: 1px solid #e9ecef; }
-    .detail-table td { padding: 8px 10px; border-bottom: 1px solid #f1f3f5; }
-    .detail-summary { display: flex; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e9ecef; font-weight: 600; }
-    .empty-detail { text-align: center; padding: 20px 0; color: #adb5bd; font-size: 0.85rem; }
+    .detail-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #111;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .detail-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+    .detail-table th {
+        background-color: #f8f9fa;
+        color: #6b7280;
+        font-weight: 600;
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    .detail-table td {
+        padding: 12px 15px;
+        color: #1d1d1f;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    .detail-table tr:hover td {
+        background-color: #f9fafb;
+    }
+    .detail-summary {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+        font-weight: 600;
+        color: #111;
+    }
+    .empty-detail {
+        text-align: center;
+        padding: 40px 0;
+        color: #9ca3af;
+        font-size: 0.9rem;
+    }
 
-    /* 藏品卡片：简化hover效果，压缩内边距 */
+    /* --- 房产展示区美化（优化：图片容器样式） --- */
+    .mansion-img-container {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .mansion-overlay-text {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        color: #fff;
+        background-color: rgba(0,0,0,0.7);
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-weight: 600;
+        z-index: 10;
+    }
+
+    /* --- 藏品卡片美化（核心优化：统一尺寸、更细腻的hover效果） --- */
     .treasure-card {
         background: #ffffff; 
-        border-radius: 8px;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.02); 
-        transition: all 0.2s ease;
-        border: 1px solid #e9ecef; 
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03); 
+        transition: all 0.3s ease;
+        border: 1px solid #e5e5e5; 
         overflow: hidden; 
         height: 100%;
         display: flex; 
         flex-direction: column;
     }
     .treasure-card:hover { 
-        transform: translateY(-2px); 
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
+        transform: translateY(-5px); 
+        box-shadow: 0 12px 30px rgba(0,0,0,0.1); 
+        border-color: #d1d5db;
     }
+    
+    /* --- 图片容器 --- */
     .t-img-box { 
-        height: 150px; 
+        height: 180px; 
         width: 100%; 
         overflow: hidden;
         background: #f8f9fa;
@@ -253,84 +394,128 @@ st.markdown("""
         justify-content: center; 
         position: relative;
     }
+
+    /* --- 圆形无留白图片 --- */
     .t-img { 
-        width: 110px !important;       
-        height: 110px !important;      
+        width: 130px !important;       
+        height: 130px !important;      
         border-radius: 50%;            
         object-fit: cover;             
-        border: 2px solid white;       
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
-        transition: all 0.3s ease; 
+        object-position: center center;
+        transform: scale(1.1);         
+        border: 3px solid white;       
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
     }
-    .treasure-card:hover .t-img { transform: scale(1.05); }
+    
+    .treasure-card:hover .t-img {
+        transform: scale(1.15);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    
     .t-content { 
-        padding: 10px !important; 
+        padding: 15px !important; 
         flex-grow: 1; 
         display: flex; 
         flex-direction: column; 
         text-align: center;
     }
-    .t-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 5px !important; color: #212529; }
+    .t-title { 
+        font-size: 1rem; 
+        font-weight: 600; 
+        margin-bottom: 8px !important; 
+        color: #1d1d1f;
+    }
     .t-period { 
-        font-size: 0.7rem; 
-        color: #6c757d; 
-        background: #f8f9fa; 
-        padding: 2px 6px; 
-        border-radius: 6px; 
+        font-size: 0.75rem; 
+        color: #86868b; 
+        background: #f5f5f7; 
+        padding: 2px 8px; 
+        border-radius: 10px; 
         display: inline-block; 
-        margin-bottom: 5px !important; 
+        margin-bottom: 8px !important; 
+        width: fit-content; 
         margin-left: auto; 
         margin-right: auto;
     }
     .t-desc { 
-        font-size: 0.75rem; 
-        color: #495057; 
-        line-height: 1.3; 
-        margin-bottom: 8px !important; 
+        font-size: 0.8rem; 
+        color: #555; 
+        line-height: 1.4; 
+        margin-bottom: 12px !important; 
         flex-grow: 1;
         overflow: hidden;
         text-overflow: ellipsis;
+        display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
-        display: -webkit-box;
     }
+    
+    /* --- 价格样式 --- */
     .t-price { 
         font-family: 'JetBrains Mono', monospace; 
-        font-size: 0.9rem; 
-        font-weight: 600; 
-        margin: 5px 0 !important; 
+        font-size: 1rem; 
+        font-weight: 700; 
+        margin: 8px 0 !important; 
     }
-    .sold-price { color: #dc3545; }
-    .unsold-price { color: #adb5bd; font-style: italic; font-size: 0.8rem; }
+    .sold-price { color: #d9534f; }
+    .unsold-price { color: #9ca3af; font-style: italic; font-size: 0.9rem; letter-spacing: 1px; }
 
-    /* 全局按钮：简化样式，统一尺寸 */
+    /* --- 动画 --- */
+    @keyframes fadeInPrice {
+        0% { opacity: 0; transform: scale(0.8) translateY(10px); color: #28a745; filter: blur(5px); }
+        50% { opacity: 0.6; transform: scale(1.1); }
+        100% { opacity: 1; transform: scale(1) translateY(0); color: #d9534f; filter: blur(0); }
+    }
+    .price-reveal { animation: fadeInPrice 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; display: inline-block; }
+
+    /* --- 支付卡片样式 --- */
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap');
+    .pay-label { font-size: 0.85rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+    .pay-amount-display { font-family: 'JetBrains Mono', monospace; font-size: 1.8rem; font-weight: 800; margin: 10px 0; }
+    .pay-instruction { font-size: 0.8rem; color: #94a3b8; margin-top: 15px; margin-bottom: 5px; }
+    .color-wechat { color: #2AAD67; }
+    .color-alipay { color: #1677ff; }
+    .color-paypal { color: #003087; }
+
+    /* 全局按钮（优化：更圆润、间距调整） */
     div[data-testid="stButton"] button { 
         width: 100% !important; 
-        border-radius: 6px !important; 
-        font-weight: 500 !important;
-        padding: 8px 0 !important;
-        font-size: 0.85rem !important;
+        border-radius: 8px !important; 
+        font-weight: 600 !important;
+        padding: 10px 0 !important;
     }
+    
+    /* 统计条（优化：更精致的边框和阴影） */
     .stats-bar { 
         display: flex; 
         justify-content: center; 
-        gap: 20px; 
-        margin-top: 30px; 
-        padding: 12px 20px; 
+        gap: 30px; 
+        margin-top: 50px; 
+        padding: 18px 30px; 
         background-color: white; 
-        border-radius: 30px; 
-        border: 1px solid #e9ecef; 
-        color: #6c757d; 
-        font-size: 0.8rem; 
+        border-radius: 50px; 
+        border: 1px solid #eee; 
+        color: #6b7280; 
+        font-size: 0.85rem; 
+        width: fit-content; 
         margin-left: auto; 
         margin-right: auto; 
-        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    }
+    .stats-bar > div {
+        text-align: center;
+        min-width: 80px;
+    }
+    .stats-bar > div:nth-child(2) {
+        border-left:1px solid #eee; 
+        padding-left:30px;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 6. 状态初始化（极简版：一行初始化，移除冗余注释）
+# 6. 状态初始化（优化：默认值更合理）
 # ==========================================
 if 'language' not in st.session_state: st.session_state.language = 'zh'
 if 'sold_items' not in st.session_state: st.session_state.sold_items = set() 
@@ -341,13 +526,18 @@ if 'visitor_id' not in st.session_state: st.session_state["visitor_id"] = str(uu
 if 'coffee_num' not in st.session_state: st.session_state.coffee_num = 1
 if 'has_counted' not in st.session_state: st.session_state["has_counted"] = False
 
-# 语言包（保留核心文本，移除冗余）
+# 语言包
 lang_texts = {
     'zh': {
         'coffee_desc': '如果这个游戏帮到了你，欢迎支持。', 
         'coffee_btn': "☕ 请开发者喝咖啡", 
+        'coffee_title': " ", 
         'coffee_amount': "请输入打赏杯数", 
         'pay_success': "收到！感谢打赏。❤️",
+        'pay_wechat': '微信支付',
+        'pay_alipay': '支付宝',
+        'pay_paypal': '贝宝',
+        'presets': [("☕ 提神", 1), ("🍗 鸡腿", 3), ("🚀 续命", 5)],
         'detail_title': '📋 拍卖成交明细',
         'detail_col1': '藏品名称',
         'detail_col2': '年代',
@@ -360,8 +550,13 @@ lang_texts = {
     'en': {
         'coffee_desc': 'Support is appreciated.', 
         'coffee_btn': "☕ Buy me a coffee", 
+        'coffee_title': " ", 
         'coffee_amount': "Enter Coffee Count", 
         'pay_success': "Received! Thanks! ❤️",
+        'pay_wechat': 'WeChat',
+        'pay_alipay': 'Alipay',
+        'pay_paypal': 'PayPal',
+        'presets': [("☕ Coffee", 1), ("🍗 Meal", 3), ("🚀 Rocket", 5)],
         'detail_title': '📋 Auction Transaction Details',
         'detail_col1': 'Treasure Name',
         'detail_col2': 'Period',
@@ -375,154 +570,219 @@ lang_texts = {
 current_text = lang_texts[st.session_state.language]
 
 # ==========================================
-# 7. 核心布局（极简优化：移除顶部冗余按钮，压缩分栏间距）
+# 7. 顶部功能区（优化：排版更紧凑、视觉更协调）
 # ==========================================
-# 简化标题：移除多余间距
-st.markdown("<h2 style='margin: 10px 0 15px 0; color: #212529; text-align: center;'>🏛️ 华夏国宝私有化中心</h2>", unsafe_allow_html=True)
+# 顶部操作栏：语言切换 + 更多应用
+col_top_1, col_top_2, col_top_3 = st.columns([0.8, 0.1, 0.1])
+with col_top_2:
+    l_btn = "En" if st.session_state.language == 'zh' else "中"
+    if st.button(l_btn, key="lang_switch", use_container_width=True):
+        st.session_state.language = 'en' if st.session_state.language == 'zh' else 'zh'
+        st.rerun()
 
-# 核心分栏：调整比例为2:8，缩小间距
-col_museum_left, col_dashboard_right = st.columns([0.2, 0.8], gap="small")
+with col_top_3:
+    st.markdown("""
+        <a href="https://laodeng.streamlit.app/" target="_blank" class="neal-btn-link">
+            <button class="neal-btn">✨ 更多</button>
+        </a>""", unsafe_allow_html=True)
 
-# 左栏：博物馆选择器（简化容器样式，压缩内边距）
-with col_museum_left:
-    st.markdown("""<div style="background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid #e9ecef;">""", unsafe_allow_html=True)
+# 标题 + 博物馆选择器
+st.markdown("<h2 style='margin-top: 15px; margin-bottom: 20px; color: #111; text-align: center;'>🏛️ 华夏国宝私有化中心</h2>", unsafe_allow_html=True)
+
+# 优化：博物馆选择器居中显示
+col_museum_1, col_museum_2, col_museum_3 = st.columns([0.2, 0.6, 0.2])
+with col_museum_2:
     selected_museum = st.radio(
         "选择博物馆",
         list(MANSION_CONFIG.keys()),
         index=list(MANSION_CONFIG.keys()).index(st.session_state.current_museum),
-        horizontal=False,
-        label_visibility="visible",
+        horizontal=True,
+        label_visibility="collapsed",
         key="museum_selector"
     )
-    st.markdown("</div>", unsafe_allow_html=True)
 
-# 博物馆切换逻辑（保持不变）
 if selected_museum != st.session_state.current_museum:
     st.session_state.current_museum = selected_museum
     st.rerun()
 
-# 右栏：仪表盘（简化渲染，压缩内边距）
-with col_dashboard_right:
-    def render_dashboard(current_revenue_display):
-        m_info = MANSION_CONFIG[st.session_state.current_museum]
-        villa_count = current_revenue_display / m_info["price"] if m_info["price"] > 0 else 0
-        
-        st.markdown('<div class="dashboard">', unsafe_allow_html=True)
-        col1, col2 = st.columns([0.35, 0.65], gap="small")
-        with col1:
-            st.markdown(f"""
-            <div style="height: 100%; display: flex; flex-direction: column; justify-content: center;">
-                <div style="font-size: 1.2rem; font-weight: 600; color: #212529; margin-bottom: 8px;">{st.session_state.current_museum}</div>
-                <div style="font-size: 1.5rem; font-weight: 700; color: #dc3545; margin-bottom: 5px;">
-                    ¥{current_revenue_display / 100000000:.4f}亿
-                </div>
-                <div style="font-size: 0.7rem; color: #6c757d; text-transform: uppercase;">累计拍卖总额</div>
-                <div style="font-size: 0.9rem; margin-top: 10px; color: #212529; font-weight: 500;">
-                    可兑换 {villa_count:.2f} 套 {m_info['mansion_name']}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        with col2:
-            st.markdown(f"""<div style="text-align: left; margin-bottom: 5px; color: #212529; font-size: 1rem; font-weight: 500;">🏠 {m_info['mansion_name']}</div>""", unsafe_allow_html=True)
-            img_path = get_base64_image(m_info["mansion_img"]) if os.path.exists(m_info["mansion_img"]) else f"https://picsum.photos/seed/mansion_{st.session_state.current_museum}/400/200"
-            st.markdown(f"""
-            <div style="position: relative; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                <img src="{img_path}" style="width: 100%; height: auto; display: block;" />
-                <div style="position: absolute; bottom: 8px; right: 8px; color: #fff; background: rgba(0,0,0,0.7); padding: 6px 10px; border-radius: 6px; font-weight: 500; font-size: 0.8rem;">
-                    × {villa_count:.2f} 套
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    render_dashboard(st.session_state.total_revenue)
-
 # ==========================================
-# 8. 明细面板（极简版：移除冗余HTML拼接，简化逻辑）
+# 8. 明细面板置顶（核心修复：表格列数匹配、语言包适配）
 # ==========================================
 def render_auction_detail():
+    """渲染拍卖成交明细面板，放置在页面上部核心位置"""
     current_museum_pinyin = MUSEUM_NAME_MAP[st.session_state.current_museum]
     all_treasures = MUSEUM_TREASURES.get(current_museum_pinyin, [])
     sold_treasures = [t for t in all_treasures if t['id'] in st.session_state.sold_items]
     
-    detail_html = [f'<div class="detail-panel">', f'  <div class="detail-title">{current_text["detail_title"]}</div>']
+    # 初始化HTML（列表拼接，避免语法错误）
+    detail_html = []
+    detail_html.append(f'<div class="detail-panel">')
+    detail_html.append(f'  <div class="detail-title">{current_text["detail_title"]}</div>')
+    
     if not sold_treasures:
+        # 优化：使用语言包文本，避免硬编码
         detail_html.append(f'  <div class="empty-detail">{current_text["detail_empty"]}</div>')
     else:
-        detail_html.extend([
-            f'  <table class="detail-table">',
-            f'    <thead><tr>',
-            f'      <th>{current_text["detail_col1"]}</th>',
-            f'      <th>{current_text["detail_col2"]}</th>',
-            f'      <th>{current_text["detail_col3"]}</th>',
-            f'      <th>{current_text["detail_col4"]}</th>',
-            f'    </tr></thead><tbody>'
-        ])
+        # 修复：表格列数与<th>、<td>匹配（4列）
+        detail_html.append(f'  <table class="detail-table">')
+        detail_html.append(f'    <thead>')
+        detail_html.append(f'      <tr>')
+        detail_html.append(f'        <th>{current_text["detail_col1"]}</th>')
+        detail_html.append(f'        <th>{current_text["detail_col2"]}</th>')
+        detail_html.append(f'        <th>{current_text["detail_col3"]}</th>')
+        detail_html.append(f'        <th>{current_text["detail_col4"]}</th>')
+        detail_html.append(f'      </tr>')
+        detail_html.append(f'    </thead>')
+        detail_html.append(f'    <tbody>')
+        
         for treasure in sold_treasures:
             price_str = f"¥{format_price(treasure['price'])}"
             status = "✅ 已成交" if st.session_state.language == 'zh' else "✅ Sold"
-            detail_html.append(f'      <tr><td>{treasure["name"]}</td><td>{treasure["period"]}</td><td class="sold-price">{price_str}</td><td>{status}</td></tr>')
-        detail_html.extend([
-            f'    </tbody></table>',
-            f'  <div class="detail-summary">',
-            f'    <div>{current_text["detail_summary_count"]} {len(sold_treasures)}</div>',
-            f'    <div>{current_text["detail_summary_total"]} ¥{format_price(st.session_state.total_revenue)}</div>',
-            f'  </div>'
-        ])
+            detail_html.append(f'      <tr>')
+            detail_html.append(f'        <td>{treasure["name"]}</td>')
+            detail_html.append(f'        <td>{treasure["period"]}</td>')
+            detail_html.append(f'        <td class="sold-price">{price_str}</td>')
+            detail_html.append(f'        <td>{status}</td>')
+            detail_html.append(f'      </tr>')
+        
+        detail_html.append(f'    </tbody>')
+        detail_html.append(f'  </table>')
+        
+        # 明细汇总
+        total_count = len(sold_treasures)
+        total_amount = f"¥{format_price(st.session_state.total_revenue)}"
+        detail_html.append(f'  <div class="detail-summary">')
+        detail_html.append(f'    <div>{current_text["detail_summary_count"]} {total_count}</div>')
+        detail_html.append(f'    <div>{current_text["detail_summary_total"]} {total_amount}</div>')
+        detail_html.append(f'  </div>')
+    
     detail_html.append(f'</div>')
-    st.markdown("\n".join(detail_html), unsafe_allow_html=True)
+    final_html = "\n".join(detail_html)
+    st.markdown(final_html, unsafe_allow_html=True)
 
+# 执行明细面板渲染
 render_auction_detail()
 
 # ==========================================
-# 9. 拍卖动画（极简版：减少步骤，提升流畅度）
+# 9. 仪表盘模块（优化：图片显示、叠加文本错位修复）
+# ==========================================
+dashboard_placeholder = st.empty()
+
+def render_dashboard(current_revenue_display):
+    m_info = MANSION_CONFIG[st.session_state.current_museum]
+    villa_count = current_revenue_display / m_info["price"] if m_info["price"] > 0 else 0  # 避免除零错误
+    
+    # 分栏布局（优化：比例更合理）
+    col1, col2 = dashboard_placeholder.columns([0.8, 0.23], gap="small")
+    with col1:
+        # 左侧统计信息
+        st.markdown(f"""
+        <div class="dashboard">
+            <div style="font-size: 1.4rem; font-weight: 800; color: #111; margin-bottom: 10px;">{st.session_state.current_museum}</div>
+            <div style="font-size: 1.8rem; font-weight: 900; color: #d9534f; margin-bottom: 8px;">
+                ¥{current_revenue_display / 100000000:.4f}亿
+            </div>
+            <div style="font-size: 0.8rem; color: #86868b; text-transform: uppercase;">累计拍卖总额</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        # 右侧图片 + 叠加文本（修复：绝对定位更稳定）
+        img_container = st.container()
+        with img_container:
+            # 图片容错：如果本地图片不存在，使用占位图
+            if os.path.exists(m_info["mansion_img"]):
+                img_path = m_info["mansion_img"]
+            else:
+                img_path = f"https://picsum.photos/seed/mansion_{st.session_state.current_museum}/400/250"
+            
+   
+            # 1. 先写标题
+           # st.markdown(f"🏠 {m_info['mansion_name']}") 
+            
+            # 2. 再放图片（去掉 caption 参数）
+            st.image(
+                img_path,
+                width=400,
+                # caption=...  <-- 删除这行，因为已经写在上面了
+                use_column_width=True
+            )
+            
+            # 修复：叠加文本定位，避免错位
+            overlay_text = f"当前财富购买力：<br>× {villa_count:.2f} 套" if st.session_state.language == 'zh' else f"Wealth Purchasing Power: × {villa_count:.2f} Sets "
+            st.markdown(f"""
+            <div class="mansion-overlay-text">
+                {overlay_text}{m_info['mansion_name']}
+            </div>
+            """, unsafe_allow_html=True)
+
+# 渲染仪表盘
+render_dashboard(st.session_state.total_revenue)
+
+# ==========================================
+# 10. 拍卖动画（优化：减少重渲染，提升流畅度）
 # ==========================================
 def auction_animation(item_price, item_name, item_id):
     if item_id in st.session_state.sold_items:
-        return
+        return  # 避免重复拍卖
+    
     start_revenue = st.session_state.total_revenue
     target_revenue = start_revenue + item_price
-    steps = 10
+    steps = 15  # 减少步骤，提升流畅度
     step_val = item_price / steps
     
     msg = st.toast(f"🔨 正在拍卖 {item_name}...", icon="⏳")
-    for i in range(steps):
-        with col_dashboard_right:
-            render_dashboard(start_revenue + (step_val * (i + 1)))
-        time.sleep(0.02)
     
+    for i in range(steps):
+        current_step_val = start_revenue + (step_val * (i + 1))
+        render_dashboard(current_step_val)
+        time.sleep(0.02)  # 调整间隔，更流畅
+    
+    # 更新状态
     st.session_state.total_revenue = target_revenue
     st.session_state.sold_items.add(item_id)
     st.session_state.last_sold_id = item_id 
+    
     msg.toast(f"✅ 成交！入账 ¥{format_price(item_price)}", icon="💰")
-    time.sleep(0.5)
+    time.sleep(0.8)
     st.rerun()
 
 # ==========================================
-# 10. 商品展示区（极简优化：调整列数为8列，压缩间距）
+# 11. 商品展示区（优化：卡片间距、列数适配）
 # ==========================================
 current_museum_pinyin = MUSEUM_NAME_MAP[st.session_state.current_museum]
 items = MUSEUM_TREASURES.get(current_museum_pinyin, [])
 
-# 优化列数：更紧凑，8列布局
-cols_per_row = 8 if len(items) >= 8 else len(items)
+# 优化：根据屏幕宽度调整列数（宽屏6列，更紧凑）
+cols_per_row = 6
+if len(items) < 6:
+    cols_per_row = len(items)
 rows = [items[i:i + cols_per_row] for i in range(0, len(items), cols_per_row)]
 
-# 简化标题：减少间距
-st.markdown(f"<h3 style='margin: 20px 0 12px 0; color: #212529;'>📜 {st.session_state.current_museum} 藏品列表</h3>", unsafe_allow_html=True)
+# 增加分区标题
+st.markdown(f"<h3 style='margin: 30px 0 20px 0; color: #111;'>📜 {st.session_state.current_museum} 藏品列表</h3>", unsafe_allow_html=True)
 
 for row_items in rows:
-    cols = st.columns(cols_per_row, gap="small")
+    cols = st.columns(cols_per_row, gap="medium")
     for idx, item in enumerate(row_items):
         item_id = item['id']
         with cols[idx]:
             is_sold = item_id in st.session_state.sold_items
-            display_price = f"¥{format_price(item['price'])}" if is_sold else "🕵️ 价值待揭晓"
-            price_class = "t-price sold-price" if is_sold else "t-price unsold-price"
-            if is_sold and item_id == st.session_state.get('last_sold_id'):
-                price_class += " price-reveal"
             
+            # 价格显示逻辑
+            if is_sold:
+                display_price = f"¥{format_price(item['price'])}"
+                price_class = "t-price sold-price"
+                if item_id == st.session_state.get('last_sold_id'):
+                    price_class += " price-reveal"
+            else:
+                display_price = "🕵️ 价值待揭晓" if st.session_state.language == 'zh' else "🕵️ Value to be revealed"
+                price_class = "t-price unsold-price"
+            
+            # 图片容错
             item_img = item.get('img', f"https://picsum.photos/seed/{item_id}/300/300")
+            
+            # 渲染藏品卡片
             st.markdown(f"""
             <div class="treasure-card">
                 <div class="t-img-box">
@@ -530,48 +790,102 @@ for row_items in rows:
                 </div>
                 <div class="t-content">
                     <div class="t-title">{item['name']}</div>
-                    <div class="t-period">{item.get('period', '古代')}</div>
+                    <div class="t-period">{item.get('period', '古代' if st.session_state.language == 'zh' else 'Ancient')}</div>
                     <div class="t-desc" title="{item['desc']}">{item['desc']}</div>
                     <div class="{price_class}">{display_price}</div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
             
-            # 简化按钮文本
+            # 拍卖按钮
             if is_sold:
-                st.button("🚫 已私有化", key=f"btn_{item_id}", disabled=True, use_container_width=True)
+                btn_text = "🚫 已私有化" if st.session_state.language == 'zh' else "🚫 Already Sold"
+                st.button(btn_text, key=f"btn_{item_id}", disabled=True, use_container_width=True)
             else:
-                if st.button("㊙ 立即拍卖", key=f"btn_{item_id}", type="primary", use_container_width=True):
+                btn_text = "㊙ 立即拍卖" if st.session_state.language == 'zh' else "㊙ Auction Now"
+                if st.button(btn_text, key=f"btn_{item_id}", type="primary", use_container_width=True):
                     auction_animation(item['price'], item['name'], item_id)
 
 # ==========================================
-# 11. 底部功能（极简版：移除多余分栏，压缩间距）
+# 12. 底部功能（优化：间距、按钮样式）
 # ==========================================
-st.write("<br>", unsafe_allow_html=True)
-c1, c2 = st.columns([0.3, 0.7], gap="small")
+st.write("<br><br>", unsafe_allow_html=True)
+c1, c2, c3 = st.columns([0.25, 0.5, 0.25], gap="medium")
 
 # 重置按钮
 with c1:
-    if st.button("🔄 重置数据", type="secondary", use_container_width=True):
+    reset_text = "🔄 破产/重置" if st.session_state.language == 'zh' else "🔄 Reset"
+    if st.button(reset_text, type="secondary", use_container_width=True):
         st.session_state.sold_items = set()
         st.session_state.total_revenue = 0
         st.session_state.last_sold_id = None
         st.rerun()
 
-# 打赏按钮（简化弹窗内容）
+# 咖啡打赏按钮
 with c2:
-    @st.dialog("支持开发者", width="small")
+    @st.dialog(" " + current_text['coffee_title'], width="small")
     def show_coffee_window():
-        st.markdown(f"""<div style="text-align:center; color:#6c757d; margin-bottom:10px;">{current_text['coffee_desc']}</div>""", unsafe_allow_html=True)
-        cnt = st.number_input(current_text['coffee_amount'], 1, 100, step=1, key='coffee_num')
-        if st.button("🎉 确认打赏", type="primary", use_container_width=True):
+        st.markdown(f"""<div style="text-align:center; color:#666; margin-bottom:15px;">{current_text['coffee_desc']}</div>""", unsafe_allow_html=True)
+        
+        presets = current_text['presets']
+        def set_val(n): st.session_state.coffee_num = n
+        
+        p_cols = st.columns(3, gap="small")
+        for i, (label, num) in enumerate(presets):
+            with p_cols[i]:
+                if st.button(label, use_container_width=True, key=f"preset_{i}"):
+                    set_val(num)
+        
+        st.write("")
+        
+        # 自定义输入
+        col_amount, col_padding = st.columns([1, 1], gap="small")
+        with col_amount: 
+            cnt = st.number_input(current_text['coffee_amount'], 1, 100, step=1, key='coffee_num')
+        
+        cny_total = cnt * 10
+        usd_total = cnt * 2
+
+        # 支付卡片渲染
+        def render_pay_tab(title, amount_str, color_class, img_name, qr_suffix, link=None):
+            with st.container(border=True):
+                st.markdown(f"""<div style="text-align: center; padding-bottom: 10px;">
+                    <div class="pay-label {color_class}">{title}</div>
+                    <div class="pay-amount-display {color_class}">{amount_str}</div></div>""", unsafe_allow_html=True)
+                
+                c_img_1, c_img_2, c_img_3 = st.columns([1, 4, 1])
+                with c_img_2:
+                    local_img_path = os.path.join(PROJECT_ROOT, img_name)
+                    if os.path.exists(local_img_path):
+                        st.image(local_img_path, use_container_width=True)
+                    else:
+                        qr_data = f"Donate_{cny_total}_{qr_suffix}" if not link else link
+                        st.image(f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={qr_data}", use_container_width=True)
+                
+                if link:
+                    st.write("")
+                    st.link_button(f"👉 Pay {amount_str}", link, type="primary", use_container_width=True)
+                else:
+                    tip_text = "扫码支付后点击下方按钮确认" if st.session_state.language == 'zh' else 'Scan QR code and click the button below to confirm'
+                    st.markdown(f"""<div class="pay-instruction" style="text-align: center;">{tip_text}</div>""", unsafe_allow_html=True)
+
+        # 支付选项卡
+        t1, t2, t3 = st.tabs([current_text['pay_wechat'], current_text['pay_alipay'], current_text['pay_paypal']])
+        with t1: render_pay_tab("WeChat Pay", f"¥{cny_total}", "color-wechat", "wechat_pay.jpg", "WeChat")
+        with t2: render_pay_tab("Alipay", f"¥{cny_total}", "color-alipay", "ali_pay.jpg", "Alipay")
+        with t3: render_pay_tab("PayPal", f"${usd_total}", "color-paypal", "paypal.png", "PayPal", "https://paypal.me/ytqz")
+
+        st.write("")
+        if st.button("🎉 " + current_text['pay_success'].split('!')[0], type="primary", use_container_width=True):
             st.balloons()
+            time.sleep(1)
             st.rerun()
+
     if st.button(current_text['coffee_btn'], use_container_width=True):
         show_coffee_window()
 
 # ==========================================
-# 12. 访问统计（极简版：保留核心功能）
+# 13. 访问统计（优化：统计条样式、数据容错）
 # ==========================================
 def track_stats():
     DB_FILE = os.path.join(os.path.expanduser("~/"), "visit_stats.db")
@@ -598,9 +912,10 @@ def track_stats():
         return 1, 1
 
 today_uv, total_uv = track_stats()
+
 st.markdown(f"""
 <div class="stats-bar">
-    <div><div>今日 UV</div><div style="font-weight:600; color:#212529;">{today_uv}</div></div>
-    <div><div>历史 UV</div><div style="font-weight:600; color:#212529;">{total_uv}</div></div>
+    <div><div>今日 UV</div><div style="font-weight:700; color:#111;">{today_uv}</div></div>
+    <div><div>历史 UV</div><div style="font-weight:700; color:#111;">{total_uv}</div></div>
 </div>
 """, unsafe_allow_html=True)
