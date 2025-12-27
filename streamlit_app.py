@@ -145,7 +145,7 @@ MUSEUM_TREASURES = {
 # 批量替换南京博物院图片路径（核心修复）
 for idx, treasure in enumerate(MUSEUM_TREASURES["南京博物院"], start=1):
     # 拼接图片绝对路径（1.jpeg ~ 18.jpeg）
-    img_path = os.path.join(IMG_DIR, f"{idx}.jpeg")
+    img_path = os.path.join(IMG_DIR, f"[] ({idx}).jpeg")
     # 检查文件是否存在，不存在则用占位图
     if os.path.exists(img_path):
         treasure["img"] = img_path
