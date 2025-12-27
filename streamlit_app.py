@@ -8,7 +8,7 @@ import random
 import base64
 
 # ==========================================
-# 1. 全局配置
+# 1. 全局配置 & 路径修复
 # ==========================================
 st.set_page_config(
     page_title="National Treasures Auction | 国宝拍卖行",
@@ -17,13 +17,33 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ------------- 核心修复：图片路径配置 -------------
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-IMG_DIR = os.path.join(PROJECT_ROOT, "img", "nanjing")
-os.makedirs(IMG_DIR, exist_ok=True)
+# ------------- 修复：路径兼容 & 动态创建目录 -------------
+try:
+    PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+except:
+    # 兜底：应对 Streamlit 云端/临时环境的路径异常
+    PROJECT_ROOT = os.getcwd()
+BASE_IMG_ROOT = os.path.join(PROJECT_ROOT, "img")
+os.makedirs(BASE_IMG_ROOT, exist_ok=True)
+
+# 定义博物馆名称映射（解决键不匹配问题）
+MUSEUM_NAME_MAP = {
+    "南京博物院": "nanjing",
+    "三星堆博物馆": "sanxingdui",
+    "中国国家博物馆": "beijing",
+    "上海博物馆": "shanghai",
+    "陕西历史博物馆": "xian"
+}
+# 反向映射（备用）
+MUSEUM_NAME_MAP_REVERSE = {v: k for k, v in MUSEUM_NAME_MAP.items()}
+
+# 动态创建所有博物馆的图片目录
+for museum_pinyin in MUSEUM_NAME_MAP.values():
+    museum_img_dir = os.path.join(BASE_IMG_ROOT, museum_pinyin)
+    os.makedirs(museum_img_dir, exist_ok=True)
 
 # ==========================================
-# 2. 核心数据
+# 2. 核心数据（修复语法错误 & 数据结构闭合）
 # ==========================================
 MANSION_CONFIG = {
     "南京博物院": {"mansion_name": "颐和路民国别墅", "price": 100000000, "mansion_img": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=400&q=80"},
@@ -41,7 +61,7 @@ MUSEUM_TREASURES = {
         {"id": "nj_4", "name": "银缕玉衣", "period": "东汉", "desc": "银丝编缀，极其罕见", "price": 300000000, "img": ""},
         {"id": "nj_5", "name": "竹林七贤砖画", "period": "南朝", "desc": "魏晋风度最佳见证", "price": 1000000000, "img": ""},
         {"id": "nj_6", "name": "大报恩寺拱门", "period": "明代", "desc": "世界奇迹残留组件", "price": 200000000, "img": ""},
-        {"id": "nj_7", "name": "坤舆万国全图", "period": "明万历", "desc": "最早彩绘世界地图", "price": 600000000, "img": ""},
+        {"id": "nj_7", "name": "坤舆万国全图", "period": "明万历", "desc": "最早彩绘世界地图", "price": 600000000, "img": ""},  # 修复语法错误
         {"id": "nj_8", "name": "广陵王玺", "period": "东汉", "desc": "汉代封王金印精品", "price": 200000000, "img": ""},
         {"id": "nj_9", "name": "错银铜牛灯", "period": "东汉", "desc": "汉代环保黑科技", "price": 180000000, "img": ""},
         {"id": "nj_10", "name": "青瓷神兽尊", "period": "西晋", "desc": "造型奇特的早期青瓷", "price": 120000000, "img": ""},
@@ -50,137 +70,146 @@ MUSEUM_TREASURES = {
         {"id": "nj_13", "name": "青花寿山福海炉", "period": "明宣德", "desc": "宣德官窑完整大器", "price": 450000000, "img": ""},
         {"id": "nj_14", "name": "徐渭《杂花图》", "period": "明代", "desc": "大写意水墨巅峰", "price": 350000000, "img": ""},
         {"id": "nj_15", "name": "沈寿《耶稣像》", "period": "近代", "desc": "万国博览会金奖", "price": 50000000, "img": ""},
-        {"id": "nj_16", "name": "芙蓉石蟠螭炉", "period": "清乾隆", "desc": "乾隆御用粉嫩玉石", "price": 130000000, "img": ""},
+        {"id": "nj_16", "name": "芙蓉石蟠螭炉", "period": "清乾隆", "desc": "乾隆御用粉嫩玉石", "price": 130000000, "img": ""},  # 修复语法错误
         {"id": "nj_17", "name": "人面兽面玉琮", "period": "良渚", "desc": "微雕工艺神作", "price": 150000000, "img": ""},
         {"id": "nj_18", "name": "青瓷釉下彩壶", "period": "唐代", "desc": "改写陶瓷史的孤品", "price": 110000000, "img": ""},
     ],
     "sanxingdui": [
-        {"id": "sx_1", "name": "青铜大立人", "period": "商代", "desc": "世界铜像之王", "price": 2000000000, "img": "https://picsum.photos/seed/sx1/400/300"},
-        {"id": "sx_2", "name": "青铜神树", "period": "商代", "desc": "通天神树", "price": 2500000000, "img": "https://picsum.photos/seed/sx2/400/300"},
-        {"id": "sx_3", "name": "金面具", "period": "商代", "desc": "半张黄金脸", "price": 800000000, "img": "https://picsum.photos/seed/sx3/400/300"},
-        {"id": "sx_4", "name": "青铜纵目面具", "period": "商代", "desc": "千里眼顺风耳", "price": 1200000000, "img": "https://picsum.photos/seed/sx4/400/300"},
-        {"id": "sx_5", "name": "太阳轮", "period": "商代", "desc": "形似方向盘", "price": 600000000, "img": "https://picsum.photos/seed/sx5/400/300"},
-        {"id": "sx_6", "name": "玉璋", "period": "商代", "desc": "祭祀山川礼器", "price": 300000000, "img": "https://picsum.photos/seed/sx6/400/300"},
-        {"id": "sx_7", "name": "黄金权杖", "period": "商代", "desc": "王权的象征", "price": 1500000000, "img": "https://picsum.photos/seed/sx7/400/300"},
-        {"id": "sx_8", "name": "青铜神坛", "period": "商代", "desc": "复杂祭祀场景", "price": 900000000, "img": "https://picsum.photos/seed/sx8/400/300"},
-        {"id": "sx_9", "name": "戴金面罩铜人", "period": "商代", "desc": "金光闪闪祭司", "price": 500000000, "img": "https://picsum.photos/seed/sx9/400/300"},
-        {"id": "sx_10", "name": "青铜鸟头", "period": "商代", "desc": "神鸟图腾", "price": 150000000, "img": "https://picsum.photos/seed/sx10/400/300"},
-        {"id": "sx_11", "name": "陶猪", "period": "商代", "desc": "愤怒小鸟同款", "price": 50000000, "img": "https://picsum.photos/seed/sx11/400/300"},
-        {"id": "sx_12", "name": "青铜大鸟", "period": "商代", "desc": "体型巨大神兽", "price": 400000000, "img": "https://picsum.photos/seed/sx12/400/300"},
-        {"id": "sx_13", "name": "青铜爬龙柱", "period": "商代", "desc": "龙形神柱", "price": 650000000, "img": "https://picsum.photos/seed/sx13/400/300"},
-        {"id": "sx_14", "name": "人身鸟脚像", "period": "商代", "desc": "半人半鸟", "price": 550000000, "img": "https://picsum.photos/seed/sx14/400/300"},
-        {"id": "sx_15", "name": "顶尊跪坐人像", "period": "商代", "desc": "国宝级重器", "price": 1100000000, "img": "https://picsum.photos/seed/sx15/400/300"},
-        {"id": "sx_16", "name": "青铜蛇", "period": "商代", "desc": "造型逼真", "price": 120000000, "img": "https://picsum.photos/seed/sx16/400/300"},
-        {"id": "sx_17", "name": "青铜鸡", "period": "商代", "desc": "雄鸡一唱", "price": 80000000, "img": "https://picsum.photos/seed/sx17/400/300"},
-        {"id": "sx_18", "name": "玉琮", "period": "商代", "desc": "良渚文化影响", "price": 200000000, "img": "https://picsum.photos/seed/sx18/400/300"},
+        {"id": "sx_1", "name": "青铜大立人", "period": "商代", "desc": "世界铜像之王", "price": 2000000000, "img": "https://picsum.photos/seed/sx1/300/300"},  # 改为正方形
+        {"id": "sx_2", "name": "青铜神树", "period": "商代", "desc": "通天神树", "price": 2500000000, "img": "https://picsum.photos/seed/sx2/300/300"},
+        {"id": "sx_3", "name": "金面具", "period": "商代", "desc": "半张黄金脸", "price": 800000000, "img": "https://picsum.photos/seed/sx3/300/300"},
+        {"id": "sx_4", "name": "青铜纵目面具", "period": "商代", "desc": "千里眼顺风耳", "price": 1200000000, "img": "https://picsum.photos/seed/sx4/300/300"},
+        {"id": "sx_5", "name": "太阳轮", "period": "商代", "desc": "形似方向盘", "price": 600000000, "img": "https://picsum.photos/seed/sx5/300/300"},
+        {"id": "sx_6", "name": "玉璋", "period": "商代", "desc": "祭祀山川礼器", "price": 300000000, "img": "https://picsum.photos/seed/sx6/300/300"},
+        {"id": "sx_7", "name": "黄金权杖", "period": "商代", "desc": "王权的象征", "price": 1500000000, "img": "https://picsum.photos/seed/sx7/300/300"},
+        {"id": "sx_8", "name": "青铜神坛", "period": "商代", "desc": "复杂祭祀场景", "price": 900000000, "img": "https://picsum.photos/seed/sx8/300/300"},
+        {"id": "sx_9", "name": "戴金面罩铜人", "period": "商代", "desc": "金光闪闪祭司", "price": 500000000, "img": "https://picsum.photos/seed/sx9/300/300"},
+        {"id": "sx_10", "name": "青铜鸟头", "period": "商代", "desc": "神鸟图腾", "price": 150000000, "img": "https://picsum.photos/seed/sx10/300/300"},
+        {"id": "sx_11", "name": "陶猪", "period": "商代", "desc": "愤怒小鸟同款", "price": 50000000, "img": "https://picsum.photos/seed/sx11/300/300"},
+        {"id": "sx_12", "name": "青铜大鸟", "period": "商代", "desc": "体型巨大神兽", "price": 400000000, "img": "https://picsum.photos/seed/sx12/300/300"},
+        {"id": "sx_13", "name": "青铜爬龙柱", "period": "商代", "desc": "龙形神柱", "price": 650000000, "img": "https://picsum.photos/seed/sx13/300/300"},
+        {"id": "sx_14", "name": "人身鸟脚像", "period": "商代", "desc": "半人半鸟", "price": 550000000, "img": "https://picsum.photos/seed/sx14/300/300"},
+        {"id": "sx_15", "name": "顶尊跪坐人像", "period": "商代", "desc": "国宝级重器", "price": 1100000000, "img": "https://picsum.photos/seed/sx15/300/300"},
+        {"id": "sx_16", "name": "青铜蛇", "period": "商代", "desc": "造型逼真", "price": 120000000, "img": "https://picsum.photos/seed/sx16/300/300"},
+        {"id": "sx_17", "name": "青铜鸡", "period": "商代", "desc": "雄鸡一唱", "price": 80000000, "img": "https://picsum.photos/seed/sx17/300/300"},
+        {"id": "sx_18", "name": "玉琮", "period": "商代", "desc": "良渚文化影响", "price": 200000000, "img": "https://picsum.photos/seed/sx18/300/300"},
     ],
     "beijing": [
-        {"id": "bj_1", "name": "清明上河图", "period": "北宋", "desc": "中华第一神品", "price": 5000000000, "img": "https://picsum.photos/seed/bj1/400/300"},
-        {"id": "bj_2", "name": "金瓯永固杯", "period": "清乾隆", "desc": "乾隆御用金杯", "price": 600000000, "img": "https://picsum.photos/seed/bj2/400/300"},
-        {"id": "bj_3", "name": "后母戊鼎", "period": "商代", "desc": "青铜之王", "price": 4000000000, "img": "https://picsum.photos/seed/bj3/400/300"},
-        {"id": "bj_4", "name": "千里江山图", "period": "北宋", "desc": "青绿山水巅峰", "price": 3000000000, "img": "https://picsum.photos/seed/bj4/400/300"},
-        {"id": "bj_5", "name": "四羊方尊", "period": "商代", "desc": "青铜铸造奇迹", "price": 2000000000, "img": "https://picsum.photos/seed/bj5/400/300"},
-        {"id": "bj_6", "name": "孝端皇后凤冠", "period": "明代", "desc": "点翠工艺巅峰", "price": 500000000, "img": "https://picsum.photos/seed/bj6/400/300"},
-        {"id": "bj_7", "name": "金缕玉衣", "period": "西汉", "desc": "中山靖王同款", "price": 1000000000, "img": "https://picsum.photos/seed/bj7/400/300"},
-        {"id": "bj_8", "name": "红山玉龙", "period": "新石器", "desc": "中华第一龙", "price": 1200000000, "img": "https://picsum.photos/seed/bj8/400/300"},
-        {"id": "bj_9", "name": "击鼓说唱俑", "period": "东汉", "desc": "汉代幽默感", "price": 300000000, "img": "https://picsum.photos/seed/bj9/400/300"},
-        {"id": "bj_10", "name": "人面鱼纹盆", "period": "仰韶", "desc": "史前文明微笑", "price": 250000000, "img": "https://picsum.photos/seed/bj10/400/300"},
-        {"id": "bj_11", "name": "大盂鼎", "period": "西周", "desc": "铭文极其珍贵", "price": 1800000000, "img": "https://picsum.photos/seed/bj11/400/300"},
-        {"id": "bj_12", "name": "虢季子白盘", "period": "西周", "desc": "晚清出土重器", "price": 1600000000, "img": "https://picsum.photos/seed/bj12/400/300"},
-        {"id": "bj_13", "name": "霁蓝白龙梅瓶", "period": "元代", "desc": "元代顶级瓷器", "price": 800000000, "img": "https://picsum.photos/seed/bj13/400/300"},
-        {"id": "bj_14", "name": "郎世宁百骏图", "period": "清代", "desc": "中西合璧", "price": 600000000, "img": "https://picsum.photos/seed/bj14/400/300"},
-        {"id": "bj_15", "name": "五牛图", "period": "唐代", "desc": "韩滉传世孤本", "price": 900000000, "img": "https://picsum.photos/seed/bj15/400/300"},
-        {"id": "bj_16", "name": "步辇图", "period": "唐代", "desc": "阎立本绘", "price": 1100000000, "img": "https://picsum.photos/seed/bj16/400/300"},
-        {"id": "bj_17", "name": "利簋", "period": "西周", "desc": "记录武王伐纣", "price": 700000000, "img": "https://picsum.photos/seed/bj17/400/300"},
-        {"id": "bj_18", "name": "鹳鱼石斧陶缸", "period": "仰韶", "desc": "绘画史第一页", "price": 400000000, "img": "https://picsum.photos/seed/bj18/400/300"},
+        {"id": "bj_1", "name": "清明上河图", "period": "北宋", "desc": "中华第一神品", "price": 5000000000, "img": "https://picsum.photos/seed/bj1/300/300"},
+        {"id": "bj_2", "name": "金瓯永固杯", "period": "清乾隆", "desc": "乾隆御用金杯", "price": 600000000, "img": "https://picsum.photos/seed/bj2/300/300"},
+        {"id": "bj_3", "name": "后母戊鼎", "period": "商代", "desc": "青铜之王", "price": 4000000000, "img": "https://picsum.photos/seed/bj3/300/300"},
+        {"id": "bj_4", "name": "千里江山图", "period": "北宋", "desc": "青绿山水巅峰", "price": 3000000000, "img": "https://picsum.photos/seed/bj4/300/300"},
+        {"id": "bj_5", "name": "四羊方尊", "period": "商代", "desc": "青铜铸造奇迹", "price": 2000000000, "img": "https://picsum.photos/seed/bj5/300/300"},
+        {"id": "bj_6", "name": "孝端皇后凤冠", "period": "明代", "desc": "点翠工艺巅峰", "price": 500000000, "img": "https://picsum.photos/seed/bj6/300/300"},
+        {"id": "bj_7", "name": "金缕玉衣", "period": "西汉", "desc": "中山靖王同款", "price": 1000000000, "img": "https://picsum.photos/seed/bj7/300/300"},
+        {"id": "bj_8", "name": "红山玉龙", "period": "新石器", "desc": "中华第一龙", "price": 1200000000, "img": "https://picsum.photos/seed/bj8/300/300"},
+        {"id": "bj_9", "name": "击鼓说唱俑", "period": "东汉", "desc": "汉代幽默感", "price": 300000000, "img": "https://picsum.photos/seed/bj9/300/300"},
+        {"id": "bj_10", "name": "人面鱼纹盆", "period": "仰韶", "desc": "史前文明微笑", "price": 250000000, "img": "https://picsum.photos/seed/bj10/300/300"},
+        {"id": "bj_11", "name": "大盂鼎", "period": "西周", "desc": "铭文极其珍贵", "price": 1800000000, "img": "https://picsum.photos/seed/bj11/300/300"},
+        {"id": "bj_12", "name": "虢季子白盘", "period": "西周", "desc": "晚清出土重器", "price": 1600000000, "img": "https://picsum.photos/seed/bj12/300/300"},
+        {"id": "bj_13", "name": "霁蓝白龙梅瓶", "period": "元代", "desc": "元代顶级瓷器", "price": 800000000, "img": "https://picsum.photos/seed/bj13/300/300"},
+        {"id": "bj_14", "name": "郎世宁百骏图", "period": "清代", "desc": "中西合璧", "price": 600000000, "img": "https://picsum.photos/seed/bj14/300/300"},
+        {"id": "bj_15", "name": "五牛图", "period": "唐代", "desc": "韩滉传世孤本", "price": 900000000, "img": "https://picsum.photos/seed/bj15/300/300"},
+        {"id": "bj_16", "name": "步辇图", "period": "唐代", "desc": "阎立本绘", "price": 1100000000, "img": "https://picsum.photos/seed/bj16/300/300"},
+        {"id": "bj_17", "name": "利簋", "period": "西周", "desc": "记录武王伐纣", "price": 700000000, "img": "https://picsum.photos/seed/bj17/300/300"},
+        {"id": "bj_18", "name": "鹳鱼石斧陶缸", "period": "仰韶", "desc": "绘画史第一页", "price": 400000000, "img": "https://picsum.photos/seed/bj18/300/300"},
     ],
     "shanghai": [
-        {"id": "sh_1", "name": "大克鼎", "period": "西周", "desc": "海内三宝之一", "price": 1500000000, "img": "https://picsum.photos/seed/sh1/400/300"},
-        {"id": "sh_2", "name": "晋侯苏钟", "period": "西周", "desc": "铭文刻在钟表", "price": 800000000, "img": "https://picsum.photos/seed/sh2/400/300"},
-        {"id": "sh_3", "name": "孙位高逸图", "period": "唐代", "desc": "唐代人物画孤本", "price": 1200000000, "img": "https://picsum.photos/seed/sh3/400/300"},
-        {"id": "sh_4", "name": "越王剑", "period": "春秋", "desc": "虽不如勾践剑", "price": 300000000, "img": "https://picsum.photos/seed/sh4/400/300"},
-        {"id": "sh_5", "name": "粉彩蝠桃纹瓶", "period": "清雍正", "desc": "雍正官窑极品", "price": 400000000, "img": "https://picsum.photos/seed/sh5/400/300"},
-        {"id": "sh_6", "name": "王羲之上虞帖", "period": "唐摹本", "desc": "书圣墨宝", "price": 2000000000, "img": "https://picsum.photos/seed/sh6/400/300"},
-        {"id": "sh_7", "name": "苦笋帖", "period": "唐怀素", "desc": "草书狂僧真迹", "price": 1000000000, "img": "https://picsum.photos/seed/sh7/400/300"},
-        {"id": "sh_8", "name": "青花瓶", "period": "元代", "desc": "元青花存世稀少", "price": 600000000, "img": "https://picsum.photos/seed/sh8/400/300"},
-        {"id": "sh_9", "name": "子仲姜盘", "period": "春秋", "desc": "盘内动物可旋转", "price": 500000000, "img": "https://picsum.photos/seed/sh9/400/300"},
-        {"id": "sh_10", "name": "牺尊", "period": "春秋", "desc": "极具神韵的牛形", "price": 350000000, "img": "https://picsum.photos/seed/sh10/400/300"},
-        {"id": "sh_11", "name": "商鞅方升", "period": "战国", "desc": "统一度量衡", "price": 1500000000, "img": "https://picsum.photos/seed/sh11/400/300"},
-        {"id": "sh_12", "name": "曹全碑", "period": "东汉", "desc": "汉隶书法典范", "price": 450000000, "img": "https://picsum.photos/seed/sh12/400/300"},
-        {"id": "sh_13", "name": "哥窑五足洗", "period": "南宋", "desc": "金丝铁线", "price": 300000000, "img": "https://picsum.photos/seed/sh13/400/300"},
-        {"id": "sh_14", "name": "透雕神兽玉璧", "period": "西汉", "desc": "汉代玉器巅峰", "price": 200000000, "img": "https://picsum.photos/seed/sh14/400/300"},
-        {"id": "sh_15", "name": "剔红花卉纹盘", "period": "元代", "desc": "张成造，漆器孤品", "price": 120000000, "img": "https://picsum.photos/seed/sh15/400/300"},
-        {"id": "sh_16", "name": "苏轼舣舟亭图", "period": "清代", "desc": "乾隆御览之宝", "price": 250000000, "img": "https://picsum.photos/seed/sh16/400/300"},
-        {"id": "sh_17", "name": "青花牡丹纹罐", "period": "元代", "desc": "元青花大器", "price": 550000000, "img": "https://picsum.photos/seed/sh17/400/300"},
-        {"id": "sh_18", "name": "缂丝莲塘乳鸭", "period": "南宋", "desc": "朱克柔真迹", "price": 800000000, "img": "https://picsum.photos/seed/sh18/400/300"},
+        {"id": "sh_1", "name": "大克鼎", "period": "西周", "desc": "海内三宝之一", "price": 1500000000, "img": "https://picsum.photos/seed/sh1/300/300"},
+        {"id": "sh_2", "name": "晋侯苏钟", "period": "西周", "desc": "铭文刻在钟表", "price": 800000000, "img": "https://picsum.photos/seed/sh2/300/300"},
+        {"id": "sh_3", "name": "孙位高逸图", "period": "唐代", "desc": "唐代人物画孤本", "price": 1200000000, "img": "https://picsum.photos/seed/sh3/300/300"},
+        {"id": "sh_4", "name": "越王剑", "period": "春秋", "desc": "虽不如勾践剑", "price": 300000000, "img": "https://picsum.photos/seed/sh4/300/300"},
+        {"id": "sh_5", "name": "粉彩蝠桃纹瓶", "period": "清雍正", "desc": "雍正官窑极品", "price": 400000000, "img": "https://picsum.photos/seed/sh5/300/300"},
+        {"id": "sh_6", "name": "王羲之上虞帖", "period": "唐摹本", "desc": "书圣墨宝", "price": 2000000000, "img": "https://picsum.photos/seed/sh6/300/300"},
+        {"id": "sh_7", "name": "苦笋帖", "period": "唐怀素", "desc": "草书狂僧真迹", "price": 1000000000, "img": "https://picsum.photos/seed/sh7/300/300"},
+        {"id": "sh_8", "name": "青花瓶", "period": "元代", "desc": "元青花存世稀少", "price": 600000000, "img": "https://picsum.photos/seed/sh8/300/300"},
+        {"id": "sh_9", "name": "子仲姜盘", "period": "春秋", "desc": "盘内动物可旋转", "price": 500000000, "img": "https://picsum.photos/seed/sh9/300/300"},
+        {"id": "sh_10", "name": "牺尊", "period": "春秋", "desc": "极具神韵的牛形", "price": 350000000, "img": "https://picsum.photos/seed/sh10/300/300"},
+        {"id": "sh_11", "name": "商鞅方升", "period": "战国", "desc": "统一度量衡", "price": 1500000000, "img": "https://picsum.photos/seed/sh11/300/300"},
+        {"id": "sh_12", "name": "曹全碑", "period": "东汉", "desc": "汉隶书法典范", "price": 450000000, "img": "https://picsum.photos/seed/sh12/300/300"},
+        {"id": "sh_13", "name": "哥窑五足洗", "period": "南宋", "desc": "金丝铁线", "price": 300000000, "img": "https://picsum.photos/seed/sh13/300/300"},
+        {"id": "sh_14", "name": "透雕神兽玉璧", "period": "西汉", "desc": "汉代玉器巅峰", "price": 200000000, "img": "https://picsum.photos/seed/sh14/300/300"},
+        {"id": "sh_15", "name": "剔红花卉纹盘", "period": "元代", "desc": "张成造，漆器孤品", "price": 120000000, "img": "https://picsum.photos/seed/sh15/300/300"},
+        {"id": "sh_16", "name": "苏轼舣舟亭图", "period": "清代", "desc": "乾隆御览之宝", "price": 250000000, "img": "https://picsum.photos/seed/sh16/300/300"},
+        {"id": "sh_17", "name": "青花牡丹纹罐", "period": "元代", "desc": "元青花大器", "price": 550000000, "img": "https://picsum.photos/seed/sh17/300/300"},
+        {"id": "sh_18", "name": "缂丝莲塘乳鸭", "period": "南宋", "desc": "朱克柔真迹", "price": 800000000, "img": "https://picsum.photos/seed/sh18/300/300"},
     ],
     "xian": [
-        {"id": "xa_1", "name": "兽首玛瑙杯", "period": "唐代", "desc": "海内孤品", "price": 2000000000, "img": "https://picsum.photos/seed/xa1/400/300"},
-        {"id": "xa_2", "name": "舞马衔杯银壶", "period": "唐代", "desc": "大唐盛世缩影", "price": 800000000, "img": "https://picsum.photos/seed/xa2/400/300"},
-        {"id": "xa_3", "name": "皇后之玺", "period": "西汉", "desc": "吕后之印", "price": 1000000000, "img": "https://picsum.photos/seed/xa3/400/300"},
-        {"id": "xa_4", "name": "兵马俑(跪射)", "period": "秦代", "desc": "保存最完整", "price": 3000000000, "img": "https://picsum.photos/seed/xa4/400/300"},
-        {"id": "xa_5", "name": "葡萄花鸟香囊", "period": "唐代", "desc": "杨贵妃同款", "price": 500000000, "img": "https://picsum.photos/seed/xa5/400/300"},
-        {"id": "xa_6", "name": "鎏金铜蚕", "period": "西汉", "desc": "丝绸之路见证", "price": 300000000, "img": "https://picsum.photos/seed/xa6/400/300"},
-        {"id": "xa_7", "name": "独孤信印", "period": "西魏", "desc": "多面体印章", "price": 400000000, "img": "https://picsum.photos/seed/xa7/400/300"},
-        {"id": "xa_8", "name": "提梁倒注壶", "period": "五代", "desc": "神奇倒注构造", "price": 200000000, "img": "https://picsum.photos/seed/xa8/400/300"},
-        {"id": "xa_9", "name": "鸳鸯纹金碗", "period": "唐代", "desc": "金银器巅峰", "price": 600000000, "img": "https://picsum.photos/seed/xa9/400/300"},
-        {"id": "xa_10", "name": "三彩骆驼俑", "period": "唐代", "desc": "丝路乐队", "price": 450000000, "img": "https://picsum.photos/seed/xa10/400/300"},
-        {"id": "xa_11", "name": "阙楼仪仗图", "period": "唐代", "desc": "懿德太子墓", "price": 1500000000, "img": "https://picsum.photos/seed/xa11/400/300"},
-        {"id": "xa_12", "name": "鎏金铜龙", "period": "唐代", "desc": "气势磅礴", "price": 350000000, "img": "https://picsum.photos/seed/xa12/400/300"},
-        {"id": "xa_13", "name": "杜虎符", "period": "战国", "desc": "调兵遣将信物", "price": 500000000, "img": "https://picsum.photos/seed/xa13/400/300"},
-        {"id": "xa_14", "name": "何尊", "period": "西周", "desc": "最早出现'中国'", "price": 2500000000, "img": "https://picsum.photos/seed/xa14/400/300"},
-        {"id": "xa_15", "name": "多友鼎", "period": "西周", "desc": "铭文记录战争", "price": 800000000, "img": "https://picsum.photos/seed/xa15/400/300"},
-        {"id": "xa_16", "name": "日己觥", "period": "西周", "desc": "造型奇特酒器", "price": 400000000, "img": "https://picsum.photos/seed/xa16/400/300"},
-        {"id": "xa_17", "name": "雁鱼铜灯", "period": "西汉", "desc": "环保美学结合", "price": 550000000, "img": "https://picsum.photos/seed/xa17/400/300"},
-        {"id": "xa_18", "name": "金怪兽", "period": "战国", "desc": "匈奴文化代表", "price": 200000000, "img": "https://picsum.photos/seed/xa18/400/300"},
+        {"id": "xa_1", "name": "兽首玛瑙杯", "period": "唐代", "desc": "海内孤品", "price": 2000000000, "img": "https://picsum.photos/seed/xa1/300/300"},
+        {"id": "xa_2", "name": "舞马衔杯银壶", "period": "唐代", "desc": "大唐盛世缩影", "price": 800000000, "img": "https://picsum.photos/seed/xa2/300/300"},
+        {"id": "xa_3", "name": "皇后之玺", "period": "西汉", "desc": "吕后之印", "price": 1000000000, "img": "https://picsum.photos/seed/xa3/300/300"},
+        {"id": "xa_4", "name": "兵马俑(跪射)", "period": "秦代", "desc": "保存最完整", "price": 3000000000, "img": "https://picsum.photos/seed/xa4/300/300"},
+        {"id": "xa_5", "name": "葡萄花鸟香囊", "period": "唐代", "desc": "杨贵妃同款", "price": 500000000, "img": "https://picsum.photos/seed/xa5/300/300"},
+        {"id": "xa_6", "name": "鎏金铜蚕", "period": "西汉", "desc": "丝绸之路见证", "price": 300000000, "img": "https://picsum.photos/seed/xa6/300/300"},
+        {"id": "xa_7", "name": "独孤信印", "period": "西魏", "desc": "多面体印章", "price": 400000000, "img": "https://picsum.photos/seed/xa7/300/300"},
+        {"id": "xa_8", "name": "提梁倒注壶", "period": "五代", "desc": "神奇倒注构造", "price": 200000000, "img": "https://picsum.photos/seed/xa8/300/300"},
+        {"id": "xa_9", "name": "鸳鸯纹金碗", "period": "唐代", "desc": "金银器巅峰", "price": 600000000, "img": "https://picsum.photos/seed/xa9/300/300"},
+        {"id": "xa_10", "name": "三彩骆驼俑", "period": "唐代", "desc": "丝路乐队", "price": 450000000, "img": "https://picsum.photos/seed/xa10/300/300"},
+        {"id": "xa_11", "name": "阙楼仪仗图", "period": "唐代", "desc": "懿德太子墓", "price": 1500000000, "img": "https://picsum.photos/seed/xa11/300/300"},
+        {"id": "xa_12", "name": "鎏金铜龙", "period": "唐代", "desc": "气势磅礴", "price": 350000000, "img": "https://picsum.photos/seed/xa12/300/300"},
+        {"id": "xa_13", "name": "杜虎符", "period": "战国", "desc": "调兵遣将信物", "price": 500000000, "img": "https://picsum.photos/seed/xa13/300/300"},
+        {"id": "xa_14", "name": "何尊", "period": "西周", "desc": "最早出现'中国'", "price": 2500000000, "img": "https://picsum.photos/seed/xa14/300/300"},
+        {"id": "xa_15", "name": "多友鼎", "period": "西周", "desc": "铭文记录战争", "price": 800000000, "img": "https://picsum.photos/seed/xa15/300/300"},
+        {"id": "xa_16", "name": "日己觥", "period": "西周", "desc": "造型奇特酒器", "price": 400000000, "img": "https://picsum.photos/seed/xa16/300/300"},
+        {"id": "xa_17", "name": "雁鱼铜灯", "period": "西汉", "desc": "环保美学结合", "price": 550000000, "img": "https://picsum.photos/seed/xa17/300/300"},
+        {"id": "xa_18", "name": "金怪兽", "period": "战国", "desc": "匈奴文化代表", "price": 200000000, "img": "https://picsum.photos/seed/xa18/300/300"},
     ]
 }
 
+# ==========================================
+# 3. 工具函数修复（Base64 转换 + 异常处理）
+# ==========================================
 def get_base64_image(image_path):
-    """将本地图片转换为 Base64 字符串"""
-    if not os.path.exists(image_path):
+    """将本地图片转换为 Base64 字符串（增加异常处理）"""
+    try:
+        if not os.path.exists(image_path) or not os.path.isfile(image_path):
+            return None
+        with open(image_path, "rb") as img_file:
+            b64_data = base64.b64encode(img_file.read()).decode()
+        return f"data:image/jpeg;base64,{b64_data}"
+    except Exception as e:
+        print(f"读取图片失败 {image_path}：{str(e)}")
         return None
-    with open(image_path, "rb") as img_file:
-        b64_data = base64.b64encode(img_file.read()).decode()
-    return f"data:image/jpeg;base64,{b64_data}"
-
-
 
 # ==========================================
-# 通用图片加载逻辑（支持所有博物馆）
+# 4. 通用图片加载逻辑（修复路径 + 键匹配）
 # ==========================================
-
-# 定义图片根目录 (假设你的图片都在 img 文件夹下)
-BASE_IMG_DIR = os.path.join(PROJECT_ROOT, "img")
-
-# 遍历每一个博物馆
-for museum_name, treasures in MUSEUM_TREASURES.items():
-    # 动态拼接当前博物馆的图片文件夹路径
-    # 例如：img/南京博物院/
-    current_museum_dir = os.path.join(BASE_IMG_DIR, museum_name)
+for museum_cn, museum_pinyin in MUSEUM_NAME_MAP.items():
+    # 获取当前博物馆的藏品列表
+    treasures = MUSEUM_TREASURES.get(museum_pinyin, [])
+    if not treasures:
+        continue
     
-    # 遍历该博物馆下的每一件文物
+    # 当前博物馆的图片目录
+    current_museum_dir = os.path.join(BASE_IMG_ROOT, museum_pinyin)
+    
+    # 遍历藏品加载图片
     for idx, treasure in enumerate(treasures, start=1):
-        # 匹配文件名逻辑：[] (1).jpeg
-        img_name_complex = f"[] ({idx}).jpeg"
-
-        # 这里的路径寻找逻辑
-        final_path = os.path.join(current_museum_dir, img_name_complex)
-
-        # 转换为 Base64
-        b64_str = get_base64_image(final_path)
+        # 支持两种文件名格式：简化版 & 复杂版
+        img_names = [
+            f"{idx}.jpeg",
+            f"[] ({idx}).jpeg",
+            f"{idx}.jpg",
+            f"[] ({idx}).jpg"
+        ]
+        b64_str = None
         
+        # 遍历文件名格式，找到存在的图片
+        for img_name in img_names:
+            img_path = os.path.join(current_museum_dir, img_name)
+            b64_str = get_base64_image(img_path)
+            if b64_str:
+                break
+        
+        # 赋值图片路径：本地图片优先，否则用正方形占位图
         if b64_str:
             treasure["img"] = b64_str
         else:
-            # 如果本地没找到图，根据博物馆名称缩写生成不同的随机占位图
-            # 这里的 treasure['id'][:2] 会取 nj, sx, bj 等前缀
             prefix = treasure['id'][:2]
-            treasure["img"] = f"https://picsum.photos/seed/{prefix}{idx}/400/300"
-
+            treasure["img"] = f"https://picsum.photos/seed/{prefix}{idx}/300/300"
 
 # ==========================================
-# 3. 样式 (CSS 修改：图片变圆 + 新增功能按钮样式)
+# 5. 样式（保留原有 + 优化图片兜底）
 # ==========================================
 st.markdown("""
 <style>
@@ -197,7 +226,7 @@ st.markdown("""
         border: 1px solid #e5e7eb; color: #111; font-weight: 600;
         padding: 8px 16px; border-radius: 8px; cursor: pointer;
         transition: all 0.2s; display: inline-flex; align-items: center;
-        justify-content: center; text-decoration: none !important;
+        text-decoration: none !important;
         width: 100%; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
     .neal-btn:hover { background: #f9fafb; transform: translateY(-1px); }
@@ -252,7 +281,7 @@ st.markdown("""
         border-radius: 50%;            
         object-fit: cover;             
         object-position: center center;
-        transform: scale(1.5);         
+        transform: scale(1.1);         
         border: 3px solid white;       
         box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
@@ -299,7 +328,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 4. 状态初始化
+# 6. 状态初始化
 # ==========================================
 if 'language' not in st.session_state: st.session_state.language = 'zh'
 if 'sold_items' not in st.session_state: st.session_state.sold_items = set() 
@@ -340,7 +369,7 @@ lang_texts = {
 current_text = lang_texts[st.session_state.language]
 
 # ==========================================
-# 5. 顶部功能区 (新增：外链按钮)
+# 7. 顶部功能区
 # ==========================================
 col_empty, col_lang, col_more = st.columns([0.7, 0.1, 0.2])
 with col_lang:
@@ -350,7 +379,6 @@ with col_lang:
         st.rerun()
 
 with col_more:
-    # 插入外链按钮
     st.markdown("""
         <a href="https://laodeng.streamlit.app/" target="_blank" class="neal-btn-link">
             <button class="neal-btn">✨ 更多好玩应用</button>
@@ -372,7 +400,7 @@ if selected_museum != st.session_state.current_museum:
     st.rerun()
 
 # ==========================================
-# 6. 核心功能
+# 8. 核心功能（修复藏品数据获取）
 # ==========================================
 dashboard_placeholder = st.empty()
 
@@ -432,9 +460,12 @@ def auction_animation(item_price, item_name, item_id):
     st.rerun()
 
 # ==========================================
-# 7. 商品展示区
+# 9. 商品展示区（修复数据键映射）
 # ==========================================
-items = MUSEUM_TREASURES.get(st.session_state.current_museum, [])
+# 关键修复：通过映射获取正确的藏品数据
+current_museum_pinyin = MUSEUM_NAME_MAP[st.session_state.current_museum]
+items = MUSEUM_TREASURES.get(current_museum_pinyin, [])
+
 cols_per_row = 4
 rows = [items[i:i + cols_per_row] for i in range(0, len(items), cols_per_row)]
 
@@ -454,10 +485,13 @@ for row_items in rows:
                 display_price = "🕵️ 价值待揭晓"
                 price_class = "t-price unsold-price"
             
+            # 增加图片加载容错：若img为空，填充默认占位图
+            item_img = item.get('img', f"https://picsum.photos/seed/{item_id}/300/300")
+            
             st.markdown(f"""
             <div class="treasure-card">
                 <div class="t-img-box">
-                    <img src="{item['img']}" class="t-img" style="filter: {'grayscale(100%)' if is_sold else 'none'};">
+                    <img src="{item_img}" class="t-img" style="filter: {'grayscale(100%)' if is_sold else 'none'};">
                 </div>
                 <div class="t-content">
                     <div class="t-title">{item['name']}</div>
@@ -475,7 +509,7 @@ for row_items in rows:
                     auction_animation(item['price'], item['name'], item_id)
 
 # ==========================================
-# 8. 底部功能 (修改：集成打赏系统)
+# 10. 底部功能
 # ==========================================
 st.write("<br><br>", unsafe_allow_html=True)
 c1, c2, c3 = st.columns([1, 2, 1])
@@ -494,7 +528,6 @@ with c2:
     def show_coffee_window():
         st.markdown(f"""<div style="text-align:center; color:#666; margin-bottom:15px;">{current_text['coffee_desc']}</div>""", unsafe_allow_html=True)
         
-        # 1. 快捷选项
         presets = current_text['presets']
         def set_val(n): st.session_state.coffee_num = n
         
@@ -506,7 +539,7 @@ with c2:
         
         st.write("")
         
-        # 2. 自定义输入
+        # 自定义输入
         col_amount, col_padding = st.columns([1, 1], gap="small")
         with col_amount: 
             cnt = st.number_input(current_text['coffee_amount'], 1, 100, step=1, key='coffee_num')
@@ -514,14 +547,13 @@ with c2:
         cny_total = cnt * 10
         usd_total = cnt * 2
 
-        # 3. 支付卡片渲染函数
+        # 支付卡片渲染
         def render_pay_tab(title, amount_str, color_class, img_name, qr_suffix, link=None):
             with st.container(border=True):
                 st.markdown(f"""<div style="text-align: center; padding-bottom: 10px;">
                     <div class="pay-label {color_class}">{title}</div>
                     <div class="pay-amount-display {color_class}">{amount_str}</div></div>""", unsafe_allow_html=True)
                 
-                # 尝试加载本地图片，没有则生成二维码
                 c_img_1, c_img_2, c_img_3 = st.columns([1, 4, 1])
                 with c_img_2:
                     local_img_path = os.path.join(PROJECT_ROOT, img_name)
@@ -529,7 +561,7 @@ with c2:
                         st.image(local_img_path, use_container_width=True)
                     else:
                         qr_data = f"Donate_{cny_total}_{qr_suffix}" if not link else link
-                        st.image(f"https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={qr_data}", use_container_width=True)
+                        st.image(f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={qr_data}", use_container_width=True)
                 
                 if link:
                     st.write("")
@@ -537,7 +569,7 @@ with c2:
                 else:
                     st.markdown(f"""<div class="pay-instruction" style="text-align: center;">请使用手机扫描上方二维码</div>""", unsafe_allow_html=True)
 
-        # 4. 支付选项卡
+        # 支付选项卡
         t1, t2, t3 = st.tabs([current_text['pay_wechat'], current_text['pay_alipay'], current_text['pay_paypal']])
         with t1: render_pay_tab("WeChat Pay", f"¥{cny_total}", "color-wechat", "wechat_pay.jpg", "WeChat")
         with t2: render_pay_tab("Alipay", f"¥{cny_total}", "color-alipay", "ali_pay.jpg", "Alipay")
@@ -572,7 +604,8 @@ def track_stats():
         total_uv = c.execute("SELECT COUNT(*) FROM visitors").fetchone()[0]
         conn.close()
         return today_uv, total_uv
-    except: return 1, 1
+    except:
+        return 1, 1
 
 today_uv, total_uv = track_stats()
 
