@@ -148,19 +148,48 @@ def get_base64_image(image_path):
 # 图片加载逻辑
 # ==========================================
 for idx, treasure in enumerate(MUSEUM_TREASURES["南京博物院"], start=1):
-    img_name_simple = f"{idx}.jpeg"
     img_name_complex = f"[] ({idx}).jpeg"
-    
-    path_simple = os.path.join(IMG_DIR, img_name_simple)
-    path_complex = os.path.join(IMG_DIR, img_name_complex)
+    final_path = os.path.join(IMG_DIR, img_name_complex)
 
-    final_path = path_simple if os.path.exists(path_simple) else path_complex
     b64_str = get_base64_image(final_path)
 
     if b64_str:
         treasure["img"] = b64_str
     else:
         treasure["img"] = f"https://picsum.photos/seed/nj{idx}/400/300"
+
+# ==========================================
+# 通用图片加载逻辑（支持所有博物馆）
+# ==========================================
+
+# 定义图片根目录 (假设你的图片都在 img 文件夹下)
+BASE_IMG_DIR = os.path.join(PROJECT_ROOT, "img")
+
+# 遍历每一个博物馆
+for museum_name, treasures in MUSEUM_TREASURES.items():
+    # 动态拼接当前博物馆的图片文件夹路径
+    # 例如：img/南京博物院/
+    current_museum_dir = os.path.join(BASE_IMG_DIR, museum_name)
+    
+    # 遍历该博物馆下的每一件文物
+    for idx, treasure in enumerate(treasures, start=1):
+        # 匹配文件名逻辑：[] (1).jpeg
+        img_name_complex = f"[] ({idx}).jpeg"
+
+        # 这里的路径寻找逻辑
+        final_path = os.path.join(current_museum_dir, img_name_complex)
+
+        # 转换为 Base64
+        b64_str = get_base64_image(final_path)
+        
+        if b64_str:
+            treasure["img"] = b64_str
+        else:
+            # 如果本地没找到图，根据博物馆名称缩写生成不同的随机占位图
+            # 这里的 treasure['id'][:2] 会取 nj, sx, bj 等前缀
+            prefix = treasure['id'][:2]
+            treasure["img"] = f"https://picsum.photos/seed/{prefix}{idx}/400/300"
+
 
 # ==========================================
 # 3. 样式 (CSS 修改：图片变圆 + 新增功能按钮样式)
