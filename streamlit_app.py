@@ -356,7 +356,7 @@ st.markdown("""
     .mansion-overlay-text {
         position: absolute;
         bottom: 20px;
-        left: 20px;
+        right: 20px;
         color: #fff;
         background-color: rgba(0,0,0,0.7);
         padding: 10px 15px;
