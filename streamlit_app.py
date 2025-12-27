@@ -223,7 +223,17 @@ st.markdown("""
     .treasure-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); }
     
     .t-img-box { height: 180px; width: 100%; overflow: hidden; background: #f0f0f0; display: flex; align-items: center; justify-content: center; }
-    .t-img { width: 100%; height: 100%; object-fit: cover; transition: filter 0.3s ease; }
+
+    /* --- 核心修改：圆形图片 --- */
+    .t-img { 
+        width: 140px !important;       /* 强制固定宽度 */
+        height: 140px !important;      /* 强制固定高度 */
+        object-fit: cover;             /* 裁剪防止变形 */
+        border-radius: 50%;            /* 变圆 */
+        border: 4px solid white;       /* 增加白色边框提升质感 */
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* 添加阴影 */
+        transition: all 0.3s ease; 
+    }
     
     .t-content { padding: 12px !important; flex-grow: 1; display: flex; flex-direction: column; }
     .t-title { font-size: 1rem; font-weight: 800; color: #111; margin-bottom: 4px !important; }
