@@ -738,6 +738,8 @@ st.markdown(f"""
 # 保留你的 st.empty() 占位符（用于动态刷新）
 dashboard_placeholder = st.empty()
 
+current_revenue_display=st.session_state.total_revenue
+
 # 关键：在占位符内填充内容时，先创建一个 Container 容器
 with dashboard_placeholder.container():  # 新增：通过 .container() 创建支持分栏的容器
         
