@@ -698,7 +698,7 @@ def render_dashboard(current_revenue_display):
             
    
             # 1. 先写标题
-            st.markdown(f"### 🏠 {m_info['mansion_name']}") 
+            st.markdown(f"🏠 {m_info['mansion_name']}") 
             
             # 2. 再放图片（去掉 caption 参数）
             st.image(
