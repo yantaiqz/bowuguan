@@ -673,7 +673,7 @@ def render_dashboard(current_revenue_display):
     villa_count = current_revenue_display / m_info["price"] if m_info["price"] > 0 else 0  # 避免除零错误
     
     # 分栏布局（优化：比例更合理）
-    col1, col2 = dashboard_placeholder.columns([0.8, 0.25], gap="small")
+    col1, col2 = dashboard_placeholder.columns([0.8, 0.23], gap="small")
     with col1:
         # 左侧统计信息
         st.markdown(f"""
@@ -709,7 +709,7 @@ def render_dashboard(current_revenue_display):
             )
             
             # 修复：叠加文本定位，避免错位
-            overlay_text = f"当前财富购买力：× {villa_count:.2f} 套" if st.session_state.language == 'zh' else f"Wealth Purchasing Power: × {villa_count:.2f} Sets "
+            overlay_text = f"当前财富购买力：<br>× {villa_count:.2f} 套" if st.session_state.language == 'zh' else f"Wealth Purchasing Power: × {villa_count:.2f} Sets "
             st.markdown(f"""
             <div class="mansion-overlay-text">
                 {overlay_text}{m_info['mansion_name']}
