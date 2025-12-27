@@ -786,7 +786,7 @@ def auction_animation(item_price, item_name, item_id):
     
     for i in range(steps):
         current_step_val = start_revenue + (step_val * (i + 1))
-        render_dashboard(current_step_val)
+        #render_dashboard(current_step_val)
         time.sleep(0.02)  # 调整间隔，更流畅
     
     # 更新状态
