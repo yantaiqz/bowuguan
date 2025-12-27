@@ -235,7 +235,7 @@ st.markdown("""
         border-radius: 50%;            
         object-fit: cover;             
         object-position: center center;
-        transform: scale(1.1);         
+        transform: scale(1.5);         
         border: 3px solid white;       
         box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
@@ -507,7 +507,7 @@ with c2:
                 # 尝试加载本地图片，没有则生成二维码
                 c_img_1, c_img_2, c_img_3 = st.columns([1, 4, 1])
                 with c_img_2:
-                    local_img_path = os.path.join(PROJECT_ROOT, "img", img_name)
+                    local_img_path = os.path.join(PROJECT_ROOT, img_name)
                     if os.path.exists(local_img_path):
                         st.image(local_img_path, use_container_width=True)
                     else:
@@ -524,7 +524,7 @@ with c2:
         t1, t2, t3 = st.tabs([current_text['pay_wechat'], current_text['pay_alipay'], current_text['pay_paypal']])
         with t1: render_pay_tab("WeChat Pay", f"¥{cny_total}", "color-wechat", "wechat_pay.jpg", "WeChat")
         with t2: render_pay_tab("Alipay", f"¥{cny_total}", "color-alipay", "ali_pay.jpg", "Alipay")
-        with t3: render_pay_tab("PayPal", f"${usd_total}", "color-paypal", "paypal.png", "PayPal", "https://paypal.me/yourid")
+        with t3: render_pay_tab("PayPal", f"${usd_total}", "color-paypal", "paypal.png", "PayPal", "https://paypal.me/ytqz")
 
         st.write("")
         if st.button("🎉 " + current_text['pay_success'].split('!')[0], type="primary", use_container_width=True):
