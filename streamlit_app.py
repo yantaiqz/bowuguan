@@ -696,13 +696,16 @@ def render_dashboard(current_revenue_display):
             else:
                 img_path = f"https://picsum.photos/seed/mansion_{st.session_state.current_museum}/400/250"
             
-            # 优化：图片容器样式更精致
+   
+            # 1. 先写标题
+            st.markdown(f"### 🏠 {m_info['mansion_name']}") 
+            
+            # 2. 再放图片（去掉 caption 参数）
             st.image(
                 img_path,
                 width=400,
-                caption=m_info["mansion_name"],
-                use_column_width=True,
-                output_format="JPEG"
+                # caption=...  <-- 删除这行，因为已经写在上面了
+                use_column_width=True
             )
             
             # 修复：叠加文本定位，避免错位
