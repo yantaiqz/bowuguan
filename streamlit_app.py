@@ -591,6 +591,10 @@ st.markdown("<h2 style='margin-top: 15px; margin-bottom: 20px; color: #111; text
 
 # 优化：博物馆选择器居中显示
 col_museum_2, col_museum_3 = st.columns([0.6, 0.2])
+
+m_info = MANSION_CONFIG[st.session_state.current_museum]
+villa_count = current_revenue_display / m_info["price"] if m_info["price"] > 0 else 0  # 避免除零错误
+
 with col_museum_2:
     selected_museum = st.radio(
         "选择博物馆",
