@@ -472,6 +472,12 @@ if selected_museum != st.session_state.current_museum:
 # ==========================================
 # 8. 核心优化：明细面板置顶（新增核心模块）
 # ==========================================
+def format_price(price):
+    if price >= 100000000: return f"{price/100000000:.1f}亿"
+    elif price >= 10000: return f"{price/10000:.0f}万"
+    return str(price)
+
+
 def render_auction_detail():
     """渲染拍卖成交明细面板，放置在页面上部核心位置"""
     current_museum_pinyin = MUSEUM_NAME_MAP[st.session_state.current_museum]
@@ -569,10 +575,6 @@ def render_dashboard(current_revenue_display):
 
 render_dashboard(st.session_state.total_revenue)
 
-def format_price(price):
-    if price >= 100000000: return f"{price/100000000:.1f}亿"
-    elif price >= 10000: return f"{price/10000:.0f}万"
-    return str(price)
 
 def auction_animation(item_price, item_name, item_id):
     start_revenue = st.session_state.total_revenue
