@@ -590,7 +590,7 @@ with col_top_3:
 st.markdown("<h2 style='margin-top: 15px; margin-bottom: 20px; color: #111; text-align: center;'>🏛️ 华夏国宝私有化中心</h2>", unsafe_allow_html=True)
 
 # 优化：博物馆选择器居中显示
-col_museum_1, col_museum_2, col_museum_3 = st.columns([0.2, 0.6, 0.2])
+col_museum_2, col_museum_3 = st.columns([0.6, 0.2])
 with col_museum_2:
     selected_museum = st.radio(
         "选择博物馆",
@@ -600,6 +600,37 @@ with col_museum_2:
         label_visibility="collapsed",
         key="museum_selector"
     )
+
+with col_museum_3:
+    # 右侧图片 + 叠加文本（修复：绝对定位更稳定）
+    img_container = st.container()
+    with img_container:
+        # 图片容错：如果本地图片不存在，使用占位图
+        if os.path.exists(m_info["mansion_img"]):
+            img_path = m_info["mansion_img"]
+        else:
+            img_path = f"https://picsum.photos/seed/mansion_{st.session_state.current_museum}/400/250"
+        
+
+        # 1. 先写标题
+       # st.markdown(f"🏠 {m_info['mansion_name']}") 
+        
+        # 2. 再放图片（去掉 caption 参数）
+        st.image(
+            img_path,
+            width=400,
+            # caption=...  <-- 删除这行，因为已经写在上面了
+            use_column_width=True
+        )
+        
+        # 修复：叠加文本定位，避免错位
+        overlay_text = f"当前财富购买力：<br>× {villa_count:.2f} 套" if st.session_state.language == 'zh' else f"Wealth Purchasing Power: × {villa_count:.2f} Sets "
+        st.markdown(f"""
+        <div class="mansion-overlay-text">
+            {overlay_text}{m_info['mansion_name']}
+        </div>
+        """, unsafe_allow_html=True)
+
 
 if selected_museum != st.session_state.current_museum:
     st.session_state.current_museum = selected_museum
@@ -653,7 +684,7 @@ def render_auction_detail():
         total_amount = f"¥{format_price(st.session_state.total_revenue)}"
         detail_html.append(f'  <div class="detail-summary">')
         detail_html.append(f'    <div>{current_text["detail_summary_count"]} {total_count}</div>')
-        detail_html.append(f'    <div>{current_text["detail_summary_total"]} {total_amount}</div>')
+        detail_html.append(f'    <div style="font-size: 1.8rem; font-weight: 900; color: #d9534f; margin-bottom: 8px;">{current_text["detail_summary_total"]} {total_amount}</div>')
         detail_html.append(f'  </div>')
     
     detail_html.append(f'</div>')
