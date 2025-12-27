@@ -734,38 +734,45 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-# 4. 布局渲染
-col1, col2 = dashboard_placeholder.columns([0.4, 0.6], gap="small")
 
-with col1:
-    # 使用统一的 align-container 类
-    st.markdown(f"""
-    <div class="align-container dashboard-left">
-        <div style="font-size: 1.1rem; font-weight: 700; color: #666; margin-bottom: 5px;">{st.session_state.current_museum}</div>
-        <div style="font-size: 1.8rem; font-weight: 900; color: #d9534f;">
-            ¥{current_revenue_display / 100000000:.4f}亿
-        </div>
-        <div style="font-size: 0.75rem; color: #999; text-transform: uppercase; margin-top: 5px;">累计拍卖总额</div>
-    </div>
-    """, unsafe_allow_html=True)
+# 保留你的 st.empty() 占位符（用于动态刷新）
+dashboard_placeholder = st.empty()
 
-with col2:
-    # 获取图片
-    img_src = get_image_base64(m_info["mansion_img"])
-    overlay_text = f"财富购买力：× {villa_count:.2f} 套" if st.session_state.language == 'zh' else f"Purchasing Power: × {villa_count:.2f}"
+# 关键：在占位符内填充内容时，先创建一个 Container 容器
+with dashboard_placeholder.container():  # 新增：通过 .container() 创建支持分栏的容器
+        
+    # 4. 布局渲染
+    col1, col2 = dashboard_placeholder.columns([0.4, 0.6], gap="small")
     
-    # 纯 HTML 实现高度对齐和置顶标题
-    st.markdown(f"""
-    <div class="align-container mansion-right">
-        <div class="mansion-top-label">🏠 {m_info['mansion_name']}</div>
-        
-        <img src="{img_src}" class="mansion-img-fit">
-        
-        <div class="mansion-overlay-bottom">
-            {overlay_text}
+    with col1:
+        # 使用统一的 align-container 类
+        st.markdown(f"""
+        <div class="align-container dashboard-left">
+            <div style="font-size: 1.1rem; font-weight: 700; color: #666; margin-bottom: 5px;">{st.session_state.current_museum}</div>
+            <div style="font-size: 1.8rem; font-weight: 900; color: #d9534f;">
+                ¥{current_revenue_display / 100000000:.4f}亿
+            </div>
+            <div style="font-size: 0.75rem; color: #999; text-transform: uppercase; margin-top: 5px;">累计拍卖总额</div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        # 获取图片
+        img_src = get_image_base64(m_info["mansion_img"])
+        overlay_text = f"财富购买力：× {villa_count:.2f} 套" if st.session_state.language == 'zh' else f"Purchasing Power: × {villa_count:.2f}"
+        
+        # 纯 HTML 实现高度对齐和置顶标题
+        st.markdown(f"""
+        <div class="align-container mansion-right">
+            <div class="mansion-top-label">🏠 {m_info['mansion_name']}</div>
+            
+            <img src="{img_src}" class="mansion-img-fit">
+            
+            <div class="mansion-overlay-bottom">
+                {overlay_text}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
     
 # ==========================================
