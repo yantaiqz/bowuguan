@@ -142,17 +142,42 @@ MUSEUM_TREASURES = {
 }
 
 
-# 批量替换南京博物院图片路径（核心修复）
+import base64
+
+def get_base64_image(image_path):
+    """将本地图片转换为 Base64 字符串，供 HTML 使用"""
+    if not os.path.exists(image_path):
+        return None
+    with open(image_path, "rb") as img_file:
+        b64_data = base64.b64encode(img_file.read()).decode()
+    # 假设是 jpeg 格式，如果是 png 请改为 image/png
+    return f"data:image/jpeg;base64,{b64_data}"
+
+# ==========================================
+# 图片加载逻辑修正
+# ==========================================
+
+# 建议手动将图片重命名为 1.jpeg, 2.jpeg ... 18.jpeg 放在 img/nanjing 目录下
 for idx, treasure in enumerate(MUSEUM_TREASURES["南京博物院"], start=1):
-    # 拼接图片绝对路径（1.jpeg ~ 18.jpeg）
-    img_path = os.path.join(IMG_DIR, f"[] ({idx}).jpeg")
-    # 检查文件是否存在，不存在则用占位图
-    if os.path.exists(img_path):
-        treasure["img"] = img_path
+    # 1. 尝试匹配简单文件名：1.jpeg
+    img_name_simple = f"{idx}.jpeg"
+    # 2. 尝试匹配你原本的特殊文件名：[] (1).jpeg
+    img_name_complex = f"[] ({idx}).jpeg"
+    
+    path_simple = os.path.join(IMG_DIR, img_name_simple)
+    path_complex = os.path.join(IMG_DIR, img_name_complex)
+
+    # 优先使用简单文件名，其次尝试特殊文件名
+    final_path = path_simple if os.path.exists(path_simple) else path_complex
+
+    # 获取 Base64 字符串
+    b64_str = get_base64_image(final_path)
+
+    if b64_str:
+        treasure["img"] = b64_str  # 成功获取本地图片
     else:
-        # 备用占位图（防止图片缺失）
-        # treasure["img"] = f"https://picsum.photos/seed/nj{idx}/400/300"
-        treasure["img"] = img_path
+        # 如果本地没图，使用在线占位图作为保底，防止页面坏掉
+        treasure["img"] = f"https://picsum.photos/seed/nj{idx}/400/300"
 
 # ==========================================
 # 3. 样式 (CSS 动画核心)
