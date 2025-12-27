@@ -673,7 +673,7 @@ def render_dashboard(current_revenue_display):
     villa_count = current_revenue_display / m_info["price"] if m_info["price"] > 0 else 0  # 避免除零错误
     
     # 分栏布局（优化：比例更合理）
-    col1, col2 = dashboard_placeholder.columns([0.4, 0.6], gap="small")
+    col1, col2 = dashboard_placeholder.columns([0.8, 0.2], gap="small")
     with col1:
         # 左侧统计信息
         st.markdown(f"""
