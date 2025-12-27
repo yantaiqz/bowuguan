@@ -17,6 +17,15 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# ------------- 核心修复：图片路径配置 -------------
+# 1. 定义项目根目录（自动获取当前脚本所在目录）
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+# 2. 定义图片存储目录（必须在项目内，建议创建：项目根目录/images/nanjing/）
+# 请确保你的图片放在：项目文件夹/images/nanjing/ 下，并重命名为 1.jpeg ~ 18.jpeg（去掉特殊字符）
+IMG_DIR = os.path.join(PROJECT_ROOT, "img", "nanjing")
+# 3. 确保目录存在（自动创建）
+os.makedirs(IMG_DIR, exist_ok=True)
+
 # ==========================================
 # 2. 核心数据：五大博物馆 (完整版 - 每个馆18件)
 # ==========================================
@@ -27,11 +36,6 @@ MANSION_CONFIG = {
     "上海博物馆": {"mansion_name": "愚园路老洋房", "price": 200000000, "mansion_img": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80"},
     "陕西历史博物馆": {"mansion_name": "曲江池畔大平层", "price": 30000000, "mansion_img": "https://images.unsplash.com/photo-1600607687940-472002695533?auto=format&fit=crop&w=400&q=80"}
 }
-
-
-
-# 如果是Web框架（Flask/Streamlit）：使用相对路径 "/img/nanjing/"
-BASE_IMG_PATH = "/img/nanjing/"
 
 
 MUSEUM_TREASURES = {
@@ -137,33 +141,18 @@ MUSEUM_TREASURES = {
     ]
 }
 
-# 批量替换img路径：将nj_1对应[] (1).jpeg，nj_2对应[] (2).jpeg...
+
+# 批量替换南京博物院图片路径（核心修复）
 for idx, treasure in enumerate(MUSEUM_TREASURES["南京博物院"], start=1):
-    # 拼接图片路径：/img/nanjing/[] (1).jpeg 到 /img/nanjing/[] (18).jpeg
-    img_filename = f"[] ({idx}).jpeg"
-    treasure["img"] = os.path.join(BASE_IMG_PATH, img_filename)
-    # 去除路径中的转义符（确保兼容不同系统）
-    treasure["img"] = treasure["img"].replace("\\", "/")
-
-
-# 验证结果（可选）
-if __name__ == "__main__":
-    for treasure in MUSEUM_TREASURES["南京博物院"]:
-        print(f"{treasure['id']} - {treasure['name']}: {treasure['img']}")
-
-# 验证文件是否存在（仅本地运行时有效）
-def check_img_exists(img_path):
-    # 转换为本地绝对路径
-    local_path = os.path.abspath(img_path.lstrip("/"))
-    return os.path.exists(local_path)
-
-# 批量验证
-for treasure in MUSEUM_TREASURES["南京博物院"]:
-    if check_img_exists(treasure["img"]):
-        print(f"✅ {treasure['name']} - 图片存在: {treasure['img']}")
+    # 拼接图片绝对路径（1.jpeg ~ 18.jpeg）
+    img_path = os.path.join(IMG_DIR, f"{idx}.jpeg")
+    # 检查文件是否存在，不存在则用占位图
+    if os.path.exists(img_path):
+        treasure["img"] = img_path
     else:
-        print(f"❌ {treasure['name']} - 图片不存在: {treasure['img']}")
-        
+        # 备用占位图（防止图片缺失）
+        treasure["img"] = f"https://picsum.photos/seed/nj{idx}/400/300"
+
 # ==========================================
 # 3. 样式 (CSS 动画核心)
 # ==========================================
