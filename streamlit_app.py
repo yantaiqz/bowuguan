@@ -477,7 +477,6 @@ def format_price(price):
     elif price >= 10000: return f"{price/10000:.0f}万"
     return str(price)
 
-
 def render_auction_detail():
     """渲染拍卖成交明细面板，放置在页面上部核心位置"""
     current_museum_pinyin = MUSEUM_NAME_MAP[st.session_state.current_museum]
@@ -485,59 +484,52 @@ def render_auction_detail():
     # 筛选已成交的藏品
     sold_treasures = [t for t in all_treasures if t['id'] in st.session_state.sold_items]
     
-    # 构建明细面板HTML
-    detail_html = f"""
-    <div class="detail-panel">
-        <div class="detail-title">{current_text['detail_title']}</div>
-    """
+    # 初始化HTML，确保外层标签完整（避免拼接中断）
+    detail_html = []
+    detail_html.append(f'<div class="detail-panel">')
+    detail_html.append(f'  <div class="detail-title">{current_text["detail_title"]}</div>')
     
     if not sold_treasures:
-        # 无成交记录
-        detail_html += f"""
-<div class="empty-detail">{current_text['detail_empty']}</div>
-        """
+        # 空明细场景：保证标签闭合，无特殊字符转义问题
+        detail_html.append(f'  <div class="empty-detail">暂无成交记录，快去拍卖第一件国宝吧！</div>')
     else:
-        # 有成交记录，渲染表格
-        detail_html += f"""
-<table class="detail-table">
-    <thead>
-        <tr>
-            <th>{current_text['detail_col1']}</th>
-            <th>{current_text['detail_col2']}</th>
-            <th>{current_text['detail_col3']}</th>
-            <th>{current_text['detail_col4']}</th>
-        </tr>
-    </thead>
-    <tbody>
-        """
+        # 有成交记录的表格渲染（保留原有逻辑，确保结构完整）
+        detail_html.append(f'  <table class="detail-table">')
+        detail_html.append(f'    <thead>')
+        detail_html.append(f'      <tr>')
+        detail_html.append(f'        <th>{current_text["detail_col1"]}</th>')
+        detail_html.append(f'        <th>{current_text["detail_col2"]}</th>')
+        detail_html.append(f'        <th>{current_text["detail_col3"]}</th>')
+        detail_html.append(f'        <th>{current_text["detail_col4"]}</th>')
+        detail_html.append(f'      </tr>')
+        detail_html.append(f'    </thead>')
+        detail_html.append(f'    <tbody>')
         for treasure in sold_treasures:
             price_str = f"¥{format_price(treasure['price'])}"
             status = "✅ 已成交" if st.session_state.language == 'zh' else "✅ Sold"
-            detail_html += f"""
-            <tr>
-                <td>{treasure['name']}</td>
-                <td>{treasure['period']}</td>
-                <td class="sold-price">{price_str}</td>
-                <td>{status}</td>
-            </tr>
-            """
-        detail_html += """
-            </tbody>
-        </table>
-        """
+            detail_html.append(f'      <tr>')
+            detail_html.append(f'        <td>{treasure["name"]}</td>')
+            detail_html.append(f'        <td>{treasure["period"]}</td>')
+            detail_html.append(f'        <td class="sold-price">{price_str}</td>')
+            detail_html.append(f'        <td>{status}</td>')
+            detail_html.append(f'      </tr>')
+        detail_html.append(f'    </tbody>')
+        detail_html.append(f'  </table>')
         # 明细汇总
         total_count = len(sold_treasures)
         total_amount = f"¥{format_price(st.session_state.total_revenue)}"
-        detail_html += f"""
-        <div class="detail-summary">
-            <div>{current_text['detail_summary_count']} {total_count}</div>
-            <div>{current_text['detail_summary_total']} {total_amount}</div>
-        </div>
-        """
+        detail_html.append(f'  <div class="detail-summary">')
+        detail_html.append(f'    <div>{current_text["detail_summary_count"]} {total_count}</div>')
+        detail_html.append(f'    <div>{current_text["detail_summary_total"]} {total_amount}</div>')
+        detail_html.append(f'  </div>')
     
-    detail_html += "</div>"
-    st.markdown(detail_html, unsafe_allow_html=True)
-
+    # 确保外层标签最终闭合（关键！）
+    detail_html.append(f'</div>')
+    
+    # 拼接成完整字符串，避免拼接过程中出现中断
+    final_html = "\n".join(detail_html)
+    st.markdown(final_html, unsafe_allow_html=True)
+    
 # 执行明细面板渲染（置顶，在仪表盘之前）
 render_auction_detail()
 
