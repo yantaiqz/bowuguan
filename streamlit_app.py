@@ -355,8 +355,8 @@ st.markdown("""
     }
     .mansion-overlay-text {
         position: absolute;
-        bottom: 20px;
-        right: 20px;
+        bottom: 10px;
+        right: 10px;
         color: #fff;
         background-color: rgba(0,0,0,0.7);
         padding: 10px 15px;
@@ -674,17 +674,7 @@ def render_dashboard(current_revenue_display):
     
     # 分栏布局（优化：比例更合理）
     col1, col2 = dashboard_placeholder.columns([0.8, 0.23], gap="small")
-    with col1:
-        # 左侧统计信息
-        st.markdown(f"""
-        <div class="dashboard">
-            <div style="font-size: 1.4rem; font-weight: 800; color: #111; margin-bottom: 10px;">{st.session_state.current_museum}</div>
-            <div style="font-size: 1.8rem; font-weight: 900; color: #d9534f; margin-bottom: 8px;">
-                ¥{current_revenue_display / 100000000:.4f}亿
-            </div>
-            <div style="font-size: 0.8rem; color: #86868b; text-transform: uppercase;">累计拍卖总额</div>
-        </div>
-        """, unsafe_allow_html=True)
+
     
     with col2:
         # 右侧图片 + 叠加文本（修复：绝对定位更稳定）
@@ -707,9 +697,10 @@ def render_dashboard(current_revenue_display):
                 # caption=...  <-- 删除这行，因为已经写在上面了
                 use_column_width=True
             )
+
             
             # 修复：叠加文本定位，避免错位
-            overlay_text = f"当前财富购买力：<br>× {villa_count:.2f} 套" if st.session_state.language == 'zh' else f"Wealth Purchasing Power: × {villa_count:.2f} Sets "
+            overlay_text = f"累计拍卖总额：¥{current_revenue_display / 100000000:.4f}亿 <br>× {villa_count:.2f} 套" if st.session_state.language == 'zh' else f"Wealth Purchasing Power: × {villa_count:.2f} Sets "
             st.markdown(f"""
             <div class="mansion-overlay-text">
                 {overlay_text}{m_info['mansion_name']}
