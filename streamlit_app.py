@@ -565,6 +565,7 @@ def render_dashboard(current_revenue_display):
     m_info = MANSION_CONFIG[st.session_state.current_museum]
     villa_count = current_revenue_display / m_info["price"] if m_info["price"] else 0
     
+    # 构建HTML，用<img>标签加载本地图片，再通过定位实现遮罩和内容叠加
     html = f"""
     <div class="dashboard">
         <div style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto;">
@@ -575,9 +576,14 @@ def render_dashboard(current_revenue_display):
                 </div>
                 <div style="font-size: 0.8rem; color: #86868b; text-transform: uppercase;">累计拍卖总额</div>
             </div>
-            <div class="mansion-box" style="background-image: url('{m_info["mansion_img"]}');">
-                <div class="mansion-overlay"></div>
-                <div class="mansion-content">
+            <!-- 替换：用img标签加载本地图片，外层包裹容器实现布局 -->
+            <div class="mansion-box" style="position: relative; width: 400px; height: 250px; border-radius: 8px; overflow: hidden;">
+                <!-- img标签：Streamlit支持本地相对路径加载 -->
+                <img src="{m_info["mansion_img"]}" style="width: 100%; height: 100%; object-fit: cover;" alt="{m_info["mansion_name"]}">
+                <!-- 遮罩层：设置半透明，不遮挡图片整体观感 -->
+                <div class="mansion-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4);"></div>
+                <!-- 内容层：定位在遮罩层上方 -->
+                <div class="mansion-content" style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px; color: #fff;">
                     <div style="font-size: 0.8rem; opacity: 0.9;">当前财富购买力：</div>
                     <div style="font-size: 1.5rem; font-weight: 900;">× {villa_count:.2f} 套</div>
                     <div style="font-size: 0.9rem; font-weight: 600;">{m_info["mansion_name"]}</div>
@@ -587,7 +593,7 @@ def render_dashboard(current_revenue_display):
     </div>
     """
     dashboard_placeholder.markdown(html, unsafe_allow_html=True)
-
+    
 render_dashboard(st.session_state.total_revenue)
 
 
