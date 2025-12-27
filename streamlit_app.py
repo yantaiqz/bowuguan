@@ -185,7 +185,7 @@ for idx, treasure in enumerate(MUSEUM_TREASURES["南京博物院"], start=1):
 st.markdown("""
 <style>
     /* --- 基础设置 --- */
-    #MainMenu {visibility: hidden !important;}
+    MainMenu {visibility: hidden !important;}
     footer {visibility: hidden !important;}
     [data-testid="stHeader"] {display: none !important;}
     .stApp { background-color: #f5f5f7 !important; color: #1d1d1f; padding-top: 0 !important; }
