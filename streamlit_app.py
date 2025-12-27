@@ -85,7 +85,7 @@ MUSEUM_TREASURES = {
         {"id": "nj_8", "name": "广陵王玺", "period": "东汉", "desc": "汉代封王金印精品", "price": 200000000, "img": ""},
         {"id": "nj_9", "name": "错银铜牛灯", "period": "东汉", "desc": "汉代环保黑科技", "price": 180000000, "img": ""},
         {"id": "nj_10", "name": "青瓷神兽尊", "period": "西晋", "desc": "造型奇特的早期青瓷", "price": 120000000, "img": ""},
-        {"id": "nj_11", "name": "透雕人鸟兽玉饰", "period": "良渚", "desc": "史前玉器巅峰", "price": 60000000, "img": ""},
+        {"id": "nj_11", "name": "玉琮", "period": "良渚", "desc": "史前玉器巅峰", "price": 60000000, "img": ""},
         {"id": "nj_12", "name": "鎏金喇嘛塔", "period": "明代", "desc": "通体鎏金镶宝石", "price": 80000000, "img": ""},
         {"id": "nj_13", "name": "青花寿山福海炉", "period": "明宣德", "desc": "宣德官窑完整大器", "price": 450000000, "img": ""},
         {"id": "nj_14", "name": "徐渭《杂花图》", "period": "明代", "desc": "大写意花鸟巅峰", "price": 350000000, "img": ""},
@@ -96,7 +96,7 @@ MUSEUM_TREASURES = {
     ],
     "sanxingdui": [
         {"id": "sx_1", "name": "青铜大立人", "period": "商代", "desc": "世界铜像之王", "price": 2000000000, "img": "https://picsum.photos/seed/sx1/300/300"},
-        {"id": "sx_2", "name": "青铜神树", "period": "商代", "desc": "通天神树", "price": 2500000000, "img": "https://picsum.photos/seed/sx2/300/300"},
+        {"id": "sx_2", "name": "青铜神树", "period": "商代", "desc": "通天神树", "price": 1300000000, "img": "https://picsum.photos/seed/sx2/300/300"},
         {"id": "sx_3", "name": "金面具", "period": "商代", "desc": "半张黄金脸", "price": 800000000, "img": "https://picsum.photos/seed/sx3/300/300"},
         {"id": "sx_4", "name": "青铜纵目面具", "period": "商代", "desc": "千里眼顺风耳", "price": 1200000000, "img": "https://picsum.photos/seed/sx4/300/300"},
         {"id": "sx_5", "name": "太阳轮", "period": "商代", "desc": "形似方向盘", "price": 600000000, "img": "https://picsum.photos/seed/sx5/300/300"},
@@ -224,7 +224,7 @@ for museum_cn, museum_pinyin in MUSEUM_NAME_MAP.items():
             if b64_str:
                 break
         
-        # 优化：占位图种子更稳定，避免重复
+        # 优化：更稳定，避免重复
         if b64_str:
             treasure["img"] = b64_str
         else:
@@ -289,6 +289,7 @@ st.markdown("""
         margin-bottom: 25px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         transition: all 0.1s ease;
+        height: 100%;
     }
 
     /* --- 明细面板样式（优化：更强的视觉层级、间距调整） --- */
@@ -356,15 +357,13 @@ st.markdown("""
     .mansion-overlay-text {
         position: absolute;
         bottom: 10px;
-        left: 10px;
-        right: 10px; /* 增加 right 约束，使其在窄容器中自适应居中 */
+        right: 10px;
         color: #fff;
-        background-color: rgba(0,0,0,0.75); /* 稍微加深，增加对比度 */
-        padding: 8px;
+        background-color: rgba(0,0,0,0.7);
+        padding: 10px 15px;
         border-radius: 8px;
         font-weight: 600;
         z-index: 10;
-        line-height: 1.2;
     }
 
     /* --- 藏品卡片美化（核心优化：统一尺寸、更细腻的hover效果） --- */
@@ -513,6 +512,26 @@ st.markdown("""
         border-left:1px solid #eee; 
         padding-left:30px;
     }
+
+    /* 补充：左栏博物馆选择器样式优化 */
+    .stRadio > div {
+        gap: 10px !important;
+        flex-direction: column !important;
+    }
+    .stRadio label {
+        font-weight: 500 !important;
+        color: #1d1d1f !important;
+    }
+
+    /* 补充：仪表盘内部小分栏等高 */
+    [data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        align-items: stretch !important;
+        gap: 1rem !important;
+    }
+    .dashboard [data-testid="stHorizontalBlock"] {
+        align-items: center !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -571,6 +590,112 @@ lang_texts = {
 }
 current_text = lang_texts[st.session_state.language]
 
+# ==========================================
+# 7. 顶部功能区 + 核心布局：博物馆选择（左）+ 仪表盘（右）
+# ==========================================
+# 顶部操作栏：语言切换 + 更多应用
+col_top_1, col_top_2, col_top_3 = st.columns([0.8, 0.1, 0.1])
+with col_top_2:
+    l_btn = "En" if st.session_state.language == 'zh' else "中"
+    if st.button(l_btn, key="lang_switch", use_container_width=True):
+        st.session_state.language = 'en' if st.session_state.language == 'zh' else 'zh'
+        st.rerun()
+
+with col_top_3:
+    st.markdown("""
+        <a href="https://laodeng.streamlit.app/" target="_blank" class="neal-btn-link">
+            <button class="neal-btn">✨ 更多</button>
+        </a>""", unsafe_allow_html=True)
+
+# 标题（保持不变）
+st.markdown("<h2 style='margin-top: 15px; margin-bottom: 20px; color: #111; text-align: center;'>🏛️ 华夏国宝私有化中心</h2>", unsafe_allow_html=True)
+
+# 核心横向分栏：博物馆选择（左）+ 仪表盘（右）
+col_museum_left, col_dashboard_right = st.columns([0.3, 0.7], gap="medium")
+
+# 左栏：博物馆选择器
+with col_museum_left:
+    st.markdown("""
+    <div style="background: #fff; padding: 20px; border-radius: 16px; box-shadow: 0 2px 15px rgba(0,0,0,0.04); border: 1px solid #e5e7eb;">
+    """, unsafe_allow_html=True)
+    
+    selected_museum = st.radio(
+        "选择博物馆",
+        list(MANSION_CONFIG.keys()),
+        index=list(MANSION_CONFIG.keys()).index(st.session_state.current_museum),
+        horizontal=False,
+        label_visibility="visible",
+        key="museum_selector"
+    )
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# 博物馆切换逻辑
+if selected_museum != st.session_state.current_museum:
+    st.session_state.current_museum = selected_museum
+    st.rerun()
+
+# 右栏：仪表盘模块
+with col_dashboard_right:
+    def render_dashboard(current_revenue_display):
+        m_info = MANSION_CONFIG[st.session_state.current_museum]
+        villa_count = current_revenue_display / m_info["price"] if m_info["price"] > 0 else 0  # 避免除零错误
+        
+        # 仪表盘卡片样式包裹
+        st.markdown('<div class="dashboard">', unsafe_allow_html=True)
+        
+        # 仪表盘内部小分栏：统计信息（左）+ 别墅图片（右）
+        col1, col2 = st.columns([0.4, 0.6], gap="small")
+        with col1:
+            # 左侧统计信息
+            st.markdown(f"""
+            <div style="height: 100%; display: flex; flex-direction: column; justify-content: center;">
+                <div style="font-size: 1.4rem; font-weight: 800; color: #111; margin-bottom: 10px;">{st.session_state.current_museum}</div>
+                <div style="font-size: 1.8rem; font-weight: 900; color: #d9534f; margin-bottom: 8px;">
+                    ¥{current_revenue_display / 100000000:.4f}亿
+                </div>
+                <div style="font-size: 0.8rem; color: #86868b; text-transform: uppercase;">累计拍卖总额</div>
+                <div style="font-size: 1rem; margin-top: 15px; color: #111; font-weight: 600;">
+                    可兑换 {villa_count:.2f} 套 {m_info['mansion_name']}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            # 右侧图片 + 置顶别墅名称
+            img_container = st.container()
+            with img_container:
+                # 步骤1：置顶别墅名称
+                st.markdown(f"""
+                <div style="text-align: left; margin-bottom: 8px; color: #1f2937; font-size: 1.1rem; font-weight: 600;">
+                    🏠 {m_info['mansion_name']}
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # 步骤2：图片容错与渲染
+                img_path = None
+                if os.path.exists(m_info["mansion_img"]):
+                    b64_img = get_base64_image(m_info["mansion_img"])
+                    if b64_img:
+                        img_path = b64_img
+                if not img_path:
+                    img_path = f"https://picsum.photos/seed/mansion_{st.session_state.current_museum}/400/250"
+                
+                # 步骤3：图片与叠加文本
+                st.markdown(f"""
+                <div style="position: relative; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                    <img src="{img_path}" style="width: 100%; height: auto; display: block;" />
+                    <div class="mansion-overlay-text">
+                        {f"× {villa_count:.2f} 套" if st.session_state.language == 'zh' else f"× {villa_count:.2f} Sets"}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        # 闭合仪表盘卡片
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # 执行仪表盘渲染
+    render_dashboard(st.session_state.total_revenue)
 
 # ==========================================
 # 8. 明细面板置顶（核心修复：表格列数匹配、语言包适配）
@@ -629,79 +754,9 @@ def render_auction_detail():
 
 # 执行明细面板渲染
 render_auction_detail()
-# ==========================================
-# 7 & 9. 布局重构：选择器与仪表盘并排
-# ==========================================
-
-# 1. 顶部操作栏（语言切换与更多按钮）
-col_top_1, col_top_2, col_top_3 = st.columns([0.8, 0.1, 0.1])
-with col_top_2:
-    l_btn = "En" if st.session_state.language == 'zh' else "中"
-    if st.button(l_btn, key="lang_switch", use_container_width=True):
-        st.session_state.language = 'en' if st.session_state.language == 'zh' else 'zh'
-        st.rerun()
-with col_top_3:
-    st.markdown("""<a href="https://laodeng.streamlit.app/" target="_blank" class="neal-btn-link"><button class="neal-btn">✨ 更多</button></a>""", unsafe_allow_html=True)
-
-st.markdown("<h2 style='margin-top: 10px; margin-bottom: 20px; color: #111; text-align: left;'>🏛️ 华夏国宝私有化中心</h2>", unsafe_allow_html=True)
-
-# --- 关键改动：创建并排布局 ---
-# col_main_left: 放置博物馆选择器
-# col_main_right: 放置仪表盘（豪宅图与财富值）
-col_main_left, col_main_right = st.columns([0.7, 0.3], gap="medium")
-
-with col_main_left:
-    st.markdown("<p style='font-size:0.9rem; color:#666; margin-bottom:10px;'>请选择目标博物馆：</p>", unsafe_allow_html=True)
-    selected_museum = st.radio(
-        "选择博物馆",
-        list(MANSION_CONFIG.keys()),
-        index=list(MANSION_CONFIG.keys()).index(st.session_state.current_museum),
-        horizontal=True,
-        label_visibility="collapsed",
-        key="museum_selector"
-    )
-
-if selected_museum != st.session_state.current_museum:
-    st.session_state.current_museum = selected_museum
-    st.rerun()
-
-# 定义仪表盘渲染函数（适配右侧窄列）
-def render_dashboard(current_revenue_display):
-    m_info = MANSION_CONFIG[st.session_state.current_museum]
-    villa_count = current_revenue_display / m_info["price"] if m_info["price"] > 0 else 0
-    
-    with col_main_right:
-        # 使用容器固定位置，防止动画抖动
-        dash_container = st.empty()
-        with dash_container.container():
-            if os.path.exists(m_info["mansion_img"]):
-                img_path = m_info["mansion_img"]
-            else:
-                img_path = f"https://picsum.photos/seed/mansion_{st.session_state.current_museum}/400/250"
-            
-            # 渲染右侧小尺寸仪表盘
-            st.image(img_path, use_container_width=True)
-            
-            # 计算显示文案
-            rev_str = f"¥{current_revenue_display / 100000000:.2f}亿"
-            overlay_text = f"累计拍卖：{rev_str}<br>购买力：×{villa_count:.2f} 套" if st.session_state.language == 'zh' else f"Total: {rev_str}<br>Power: ×{villa_count:.2f} Sets"
-            
-            st.markdown(f"""
-            <div class="mansion-overlay-text" style="bottom: 5px; right: 5px; left: 5px; text-align: center; padding: 5px; font-size: 0.8rem;">
-                <div style="font-weight:700; color:#ffeb3b;">{m_info['mansion_name']}</div>
-                {overlay_text}
-            </div>
-            """, unsafe_allow_html=True)
-
-# 初始渲染
-render_dashboard(st.session_state.total_revenue)
 
 # ==========================================
-# 8. 明细面板（放在并排布局下方，保持全屏宽度或根据需要调整）
-# ==========================================
-render_auction_detail()
-# ==========================================
-# 10. 拍卖动画（优化：减少重渲染，提升流畅度）
+# 9. 拍卖动画（优化：减少重渲染，提升流畅度）
 # ==========================================
 def auction_animation(item_price, item_name, item_id):
     if item_id in st.session_state.sold_items:
@@ -716,7 +771,9 @@ def auction_animation(item_price, item_name, item_id):
     
     for i in range(steps):
         current_step_val = start_revenue + (step_val * (i + 1))
-        render_dashboard(current_step_val)
+        # 重新渲染仪表盘（更新动画过程中的营收）
+        with col_dashboard_right:
+            render_dashboard(current_step_val)
         time.sleep(0.02)  # 调整间隔，更流畅
     
     # 更新状态
@@ -729,7 +786,7 @@ def auction_animation(item_price, item_name, item_id):
     st.rerun()
 
 # ==========================================
-# 11. 商品展示区（优化：卡片间距、列数适配）
+# 10. 商品展示区（优化：卡片间距、列数适配）
 # ==========================================
 current_museum_pinyin = MUSEUM_NAME_MAP[st.session_state.current_museum]
 items = MUSEUM_TREASURES.get(current_museum_pinyin, [])
@@ -788,7 +845,7 @@ for row_items in rows:
                     auction_animation(item['price'], item['name'], item_id)
 
 # ==========================================
-# 12. 底部功能（优化：间距、按钮样式）
+# 11. 底部功能（优化：间距、按钮样式）
 # ==========================================
 st.write("<br><br>", unsafe_allow_html=True)
 c1, c2, c3 = st.columns([0.25, 0.5, 0.25], gap="medium")
@@ -866,7 +923,7 @@ with c2:
         show_coffee_window()
 
 # ==========================================
-# 13. 访问统计（优化：统计条样式、数据容错）
+# 12. 访问统计（优化：统计条样式、数据容错）
 # ==========================================
 def track_stats():
     DB_FILE = os.path.join(os.path.expanduser("~/"), "visit_stats.db")
