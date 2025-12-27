@@ -356,13 +356,15 @@ st.markdown("""
     .mansion-overlay-text {
         position: absolute;
         bottom: 10px;
-        right: 10px;
+        left: 10px;
+        right: 10px; /* 增加 right 约束，使其在窄容器中自适应居中 */
         color: #fff;
-        background-color: rgba(0,0,0,0.7);
-        padding: 10px 15px;
+        background-color: rgba(0,0,0,0.75); /* 稍微加深，增加对比度 */
+        padding: 8px;
         border-radius: 8px;
         font-weight: 600;
         z-index: 10;
+        line-height: 1.2;
     }
 
     /* --- 藏品卡片美化（核心优化：统一尺寸、更细腻的hover效果） --- */
@@ -569,41 +571,6 @@ lang_texts = {
 }
 current_text = lang_texts[st.session_state.language]
 
-# ==========================================
-# 7. 顶部功能区（优化：排版更紧凑、视觉更协调）
-# ==========================================
-# 顶部操作栏：语言切换 + 更多应用
-col_top_1, col_top_2, col_top_3 = st.columns([0.8, 0.1, 0.1])
-with col_top_2:
-    l_btn = "En" if st.session_state.language == 'zh' else "中"
-    if st.button(l_btn, key="lang_switch", use_container_width=True):
-        st.session_state.language = 'en' if st.session_state.language == 'zh' else 'zh'
-        st.rerun()
-
-with col_top_3:
-    st.markdown("""
-        <a href="https://laodeng.streamlit.app/" target="_blank" class="neal-btn-link">
-            <button class="neal-btn">✨ 更多</button>
-        </a>""", unsafe_allow_html=True)
-
-# 标题 + 博物馆选择器
-st.markdown("<h2 style='margin-top: 15px; margin-bottom: 20px; color: #111; text-align: center;'>🏛️ 华夏国宝私有化中心</h2>", unsafe_allow_html=True)
-
-# 优化：博物馆选择器居中显示
-col_museum_1, col_museum_2, col_museum_3 = st.columns([0.2, 0.6, 0.2])
-with col_museum_2:
-    selected_museum = st.radio(
-        "选择博物馆",
-        list(MANSION_CONFIG.keys()),
-        index=list(MANSION_CONFIG.keys()).index(st.session_state.current_museum),
-        horizontal=True,
-        label_visibility="collapsed",
-        key="museum_selector"
-    )
-
-if selected_museum != st.session_state.current_museum:
-    st.session_state.current_museum = selected_museum
-    st.rerun()
 
 # ==========================================
 # 8. 明细面板置顶（核心修复：表格列数匹配、语言包适配）
@@ -662,54 +629,77 @@ def render_auction_detail():
 
 # 执行明细面板渲染
 render_auction_detail()
-
 # ==========================================
-# 9. 仪表盘模块（优化：图片显示、叠加文本错位修复）
+# 7 & 9. 布局重构：选择器与仪表盘并排
 # ==========================================
-dashboard_placeholder = st.empty()
 
+# 1. 顶部操作栏（语言切换与更多按钮）
+col_top_1, col_top_2, col_top_3 = st.columns([0.8, 0.1, 0.1])
+with col_top_2:
+    l_btn = "En" if st.session_state.language == 'zh' else "中"
+    if st.button(l_btn, key="lang_switch", use_container_width=True):
+        st.session_state.language = 'en' if st.session_state.language == 'zh' else 'zh'
+        st.rerun()
+with col_top_3:
+    st.markdown("""<a href="https://laodeng.streamlit.app/" target="_blank" class="neal-btn-link"><button class="neal-btn">✨ 更多</button></a>""", unsafe_allow_html=True)
+
+st.markdown("<h2 style='margin-top: 10px; margin-bottom: 20px; color: #111; text-align: left;'>🏛️ 华夏国宝私有化中心</h2>", unsafe_allow_html=True)
+
+# --- 关键改动：创建并排布局 ---
+# col_main_left: 放置博物馆选择器
+# col_main_right: 放置仪表盘（豪宅图与财富值）
+col_main_left, col_main_right = st.columns([0.7, 0.3], gap="medium")
+
+with col_main_left:
+    st.markdown("<p style='font-size:0.9rem; color:#666; margin-bottom:10px;'>请选择目标博物馆：</p>", unsafe_allow_html=True)
+    selected_museum = st.radio(
+        "选择博物馆",
+        list(MANSION_CONFIG.keys()),
+        index=list(MANSION_CONFIG.keys()).index(st.session_state.current_museum),
+        horizontal=True,
+        label_visibility="collapsed",
+        key="museum_selector"
+    )
+
+if selected_museum != st.session_state.current_museum:
+    st.session_state.current_museum = selected_museum
+    st.rerun()
+
+# 定义仪表盘渲染函数（适配右侧窄列）
 def render_dashboard(current_revenue_display):
     m_info = MANSION_CONFIG[st.session_state.current_museum]
-    villa_count = current_revenue_display / m_info["price"] if m_info["price"] > 0 else 0  # 避免除零错误
+    villa_count = current_revenue_display / m_info["price"] if m_info["price"] > 0 else 0
     
-    # 分栏布局（优化：比例更合理）
-    col1, col2 = dashboard_placeholder.columns([0.8, 0.23], gap="small")
-
-    
-    with col2:
-        # 右侧图片 + 叠加文本（修复：绝对定位更稳定）
-        img_container = st.container()
-        with img_container:
-            # 图片容错：如果本地图片不存在，使用占位图
+    with col_main_right:
+        # 使用容器固定位置，防止动画抖动
+        dash_container = st.empty()
+        with dash_container.container():
             if os.path.exists(m_info["mansion_img"]):
                 img_path = m_info["mansion_img"]
             else:
                 img_path = f"https://picsum.photos/seed/mansion_{st.session_state.current_museum}/400/250"
             
-   
-            # 1. 先写标题
-           # st.markdown(f"🏠 {m_info['mansion_name']}") 
+            # 渲染右侧小尺寸仪表盘
+            st.image(img_path, use_container_width=True)
             
-            # 2. 再放图片（去掉 caption 参数）
-            st.image(
-                img_path,
-                width=400,
-                # caption=...  <-- 删除这行，因为已经写在上面了
-                use_column_width=True
-            )
-
+            # 计算显示文案
+            rev_str = f"¥{current_revenue_display / 100000000:.2f}亿"
+            overlay_text = f"累计拍卖：{rev_str}<br>购买力：×{villa_count:.2f} 套" if st.session_state.language == 'zh' else f"Total: {rev_str}<br>Power: ×{villa_count:.2f} Sets"
             
-            # 修复：叠加文本定位，避免错位
-            overlay_text = f"累计拍卖总额：¥{current_revenue_display / 100000000:.4f}亿 <br>× {villa_count:.2f} 套" if st.session_state.language == 'zh' else f"Wealth Purchasing Power: × {villa_count:.2f} Sets "
             st.markdown(f"""
-            <div class="mansion-overlay-text">
-                {overlay_text}{m_info['mansion_name']}
+            <div class="mansion-overlay-text" style="bottom: 5px; right: 5px; left: 5px; text-align: center; padding: 5px; font-size: 0.8rem;">
+                <div style="font-weight:700; color:#ffeb3b;">{m_info['mansion_name']}</div>
+                {overlay_text}
             </div>
             """, unsafe_allow_html=True)
 
-# 渲染仪表盘
+# 初始渲染
 render_dashboard(st.session_state.total_revenue)
 
+# ==========================================
+# 8. 明细面板（放在并排布局下方，保持全屏宽度或根据需要调整）
+# ==========================================
+render_auction_detail()
 # ==========================================
 # 10. 拍卖动画（优化：减少重渲染，提升流畅度）
 # ==========================================
