@@ -494,21 +494,21 @@ def render_auction_detail():
     if not sold_treasures:
         # 无成交记录
         detail_html += f"""
-        <div class="empty-detail">{current_text['detail_empty']}</div>
+<div class="empty-detail">{current_text['detail_empty']}</div>
         """
     else:
         # 有成交记录，渲染表格
         detail_html += f"""
-        <table class="detail-table">
-            <thead>
-                <tr>
-                    <th>{current_text['detail_col1']}</th>
-                    <th>{current_text['detail_col2']}</th>
-                    <th>{current_text['detail_col3']}</th>
-                    <th>{current_text['detail_col4']}</th>
-                </tr>
-            </thead>
-            <tbody>
+<table class="detail-table">
+    <thead>
+        <tr>
+            <th>{current_text['detail_col1']}</th>
+            <th>{current_text['detail_col2']}</th>
+            <th>{current_text['detail_col3']}</th>
+            <th>{current_text['detail_col4']}</th>
+        </tr>
+    </thead>
+    <tbody>
         """
         for treasure in sold_treasures:
             price_str = f"¥{format_price(treasure['price'])}"
