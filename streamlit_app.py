@@ -680,7 +680,8 @@ with col_museum_3:
         )
         
         # 修复：叠加文本定位，避免错位
-        purchasing_power_text = current_text['purchasing_power'].format(villa_count:.2f)
+   
+        purchasing_power_text = current_text['purchasing_power'].format(f"{villa_count:.2f}")
         st.markdown(f"""
         <div class="mansion-overlay-text">
             {purchasing_power_text} {mansion_name}
