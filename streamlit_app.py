@@ -655,7 +655,7 @@ with col_museum_2:
         current_text['museum_selector_label'],
         museum_options,
         index=current_museum_index,
-        horizontal=True,
+        horizontal=False,
         label_visibility="collapsed",
         key="museum_selector"
     )
