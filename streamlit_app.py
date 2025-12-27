@@ -5,7 +5,7 @@ import datetime
 import os
 import time
 import random
-import os
+import base64
 
 # ==========================================
 # 1. 全局配置
@@ -18,16 +18,12 @@ st.set_page_config(
 )
 
 # ------------- 核心修复：图片路径配置 -------------
-# 1. 定义项目根目录（自动获取当前脚本所在目录）
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-# 2. 定义图片存储目录（必须在项目内，建议创建：项目根目录/images/nanjing/）
-# 请确保你的图片放在：项目文件夹/images/nanjing/ 下，并重命名为 1.jpeg ~ 18.jpeg（去掉特殊字符）
 IMG_DIR = os.path.join(PROJECT_ROOT, "img", "nanjing")
-# 3. 确保目录存在（自动创建）
 os.makedirs(IMG_DIR, exist_ok=True)
 
 # ==========================================
-# 2. 核心数据：五大博物馆 (完整版 - 每个馆18件)
+# 2. 核心数据
 # ==========================================
 MANSION_CONFIG = {
     "南京博物院": {"mansion_name": "颐和路民国别墅", "price": 100000000, "mansion_img": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=400&q=80"},
@@ -36,7 +32,6 @@ MANSION_CONFIG = {
     "上海博物馆": {"mansion_name": "愚园路老洋房", "price": 200000000, "mansion_img": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80"},
     "陕西历史博物馆": {"mansion_name": "曲江池畔大平层", "price": 30000000, "mansion_img": "https://images.unsplash.com/photo-1600607687940-472002695533?auto=format&fit=crop&w=400&q=80"}
 }
-
 
 MUSEUM_TREASURES = {
     "南京博物院": [
@@ -141,55 +136,55 @@ MUSEUM_TREASURES = {
     ]
 }
 
-
-import base64
-
 def get_base64_image(image_path):
-    """将本地图片转换为 Base64 字符串，供 HTML 使用"""
+    """将本地图片转换为 Base64 字符串"""
     if not os.path.exists(image_path):
         return None
     with open(image_path, "rb") as img_file:
         b64_data = base64.b64encode(img_file.read()).decode()
-    # 假设是 jpeg 格式，如果是 png 请改为 image/png
     return f"data:image/jpeg;base64,{b64_data}"
 
 # ==========================================
-# 图片加载逻辑修正
+# 图片加载逻辑
 # ==========================================
-
-# 建议手动将图片重命名为 1.jpeg, 2.jpeg ... 18.jpeg 放在 img/nanjing 目录下
 for idx, treasure in enumerate(MUSEUM_TREASURES["南京博物院"], start=1):
-    # 1. 尝试匹配简单文件名：1.jpeg
     img_name_simple = f"{idx}.jpeg"
-    # 2. 尝试匹配你原本的特殊文件名：[] (1).jpeg
     img_name_complex = f"[] ({idx}).jpeg"
     
     path_simple = os.path.join(IMG_DIR, img_name_simple)
     path_complex = os.path.join(IMG_DIR, img_name_complex)
 
-    # 优先使用简单文件名，其次尝试特殊文件名
     final_path = path_simple if os.path.exists(path_simple) else path_complex
-
-    # 获取 Base64 字符串
     b64_str = get_base64_image(final_path)
 
     if b64_str:
-        treasure["img"] = b64_str  # 成功获取本地图片
+        treasure["img"] = b64_str
     else:
-        # 如果本地没图，使用在线占位图作为保底，防止页面坏掉
         treasure["img"] = f"https://picsum.photos/seed/nj{idx}/400/300"
 
 # ==========================================
-# 3. 样式 (CSS 动画核心)
+# 3. 样式 (CSS 修改：图片变圆 + 新增功能按钮样式)
 # ==========================================
 st.markdown("""
 <style>
     /* --- 基础设置 --- */
-    MainMenu {visibility: hidden !important;}
+    #MainMenu {visibility: hidden !important;}
     footer {visibility: hidden !important;}
     [data-testid="stHeader"] {display: none !important;}
     .stApp { background-color: #f5f5f7 !important; color: #1d1d1f; padding-top: 0 !important; }
     .block-container { padding-top: 1rem !important; max-width: 1400px !important; }
+
+    /* --- 外链按钮样式 --- */
+    .neal-btn {
+        font-family: 'Inter', sans-serif; background: #fff;
+        border: 1px solid #e5e7eb; color: #111; font-weight: 600;
+        padding: 8px 16px; border-radius: 8px; cursor: pointer;
+        transition: all 0.2s; display: inline-flex; align-items: center;
+        justify-content: center; text-decoration: none !important;
+        width: 100%; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .neal-btn:hover { background: #f9fafb; transform: translateY(-1px); }
+    .neal-btn-link { text-decoration: none; width: 100%; display: block; }
 
     /* --- 仪表盘 (Sticky) --- */
     .dashboard {
@@ -226,79 +221,62 @@ st.markdown("""
     .t-img-box { 
         height: 180px; 
         width: 100%; 
-        overflow: hidden; /* 防止放大的图片溢出容器 */
-        background: #f8f9fa; /* 极淡的背景色，万一图片加载失败时显示 */
+        overflow: hidden;
+        background: #f8f9fa;
         display: flex; 
         align-items: center; 
         justify-content: center; 
     }
 
-    /* --- 核心修改：圆形无留白图片 --- */
+    /* --- 圆形无留白图片 --- */
     .t-img { 
-        width: 130px !important;       /* 1. 强制固定宽度 */
-        height: 130px !important;      /* 2. 强制固定高度，必须与宽度一致 */
-        border-radius: 50%;            /* 3. 变成圆形 */
-        
-        object-fit: cover;             /* 4. 关键：裁剪图片以填满容器，绝不压缩变形 */
-        object-position: center center;/* 5. 关键：确保文物主体（通常在中间）居中 */
-        
-        transform: scale(1.3);         /* 6. 技巧：默认放大110%，切除图片自带的白边 */
-        
-        border: 3px solid white;       /* 装饰：白色描边 */
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* 装饰：立体阴影 */
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 弹性过渡动画 */
+        width: 130px !important;       
+        height: 130px !important;      
+        border-radius: 50%;            
+        object-fit: cover;             
+        object-position: center center;
+        transform: scale(1.1);         
+        border: 3px solid white;       
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
     }
     
-    /* 鼠标悬停时的特效 */
     .treasure-card:hover .t-img {
-        transform: scale(1.2) rotate(3deg); /* 悬停时进一步放大，增加互动感 */
+        transform: scale(1.2) rotate(3deg); 
         box-shadow: 0 8px 20px rgba(0,0,0,0.2);
     }
     
-    .t-content { padding: 12px !important; flex-grow: 1; display: flex; flex-direction: column; }
+    .t-content { padding: 12px !important; flex-grow: 1; display: flex; flex-direction: column; text-align: center; }
     .t-title { font-size: 1rem; font-weight: 800; color: #111; margin-bottom: 4px !important; }
-    .t-period { font-size: 0.75rem; color: #86868b; background: #f5f5f7; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-bottom: 6px !important; width: fit-content; }
+    .t-period { font-size: 0.75rem; color: #86868b; background: #f5f5f7; padding: 2px 8px; border-radius: 10px; display: inline-block; margin-bottom: 6px !important; width: fit-content; margin-left: auto; margin-right: auto;}
     .t-desc { font-size: 0.8rem; color: #555; line-height: 1.4; margin-bottom: 8px !important; flex-grow: 1; }
     
     /* --- 价格样式 --- */
-    .t-price { 
-        font-family: 'JetBrains Mono', monospace; 
-        font-size: 1rem; 
-        font-weight: 700; 
-        margin: 5px 0 !important; 
-    }
+    .t-price { font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; margin: 5px 0 !important; }
     .sold-price { color: #d9534f; }
     .unsold-price { color: #9ca3af; font-style: italic; font-size: 0.9rem; letter-spacing: 1px; }
 
-    /* --- 关键动画：成交后价签显现 --- */
+    /* --- 动画 --- */
     @keyframes fadeInPrice {
-        0% { 
-            opacity: 0; 
-            transform: scale(0.8) translateY(10px); 
-            color: #28a745; 
-            filter: blur(5px);
-        }
-        50% {
-            opacity: 0.6;
-            transform: scale(1.1);
-        }
-        100% { 
-            opacity: 1; 
-            transform: scale(1) translateY(0); 
-            color: #d9534f; 
-            filter: blur(0);
-        }
+        0% { opacity: 0; transform: scale(0.8) translateY(10px); color: #28a745; filter: blur(5px); }
+        50% { opacity: 0.6; transform: scale(1.1); }
+        100% { opacity: 1; transform: scale(1) translateY(0); color: #d9534f; filter: blur(0); }
     }
+    .price-reveal { animation: fadeInPrice 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; display: inline-block; }
 
-    .price-reveal {
-        animation: fadeInPrice 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        display: inline-block;
-    }
+    /* --- 支付卡片样式 --- */
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap');
+    .pay-label { font-size: 0.85rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+    .pay-amount-display { font-family: 'JetBrains Mono', monospace; font-size: 1.8rem; font-weight: 800; margin: 10px 0; }
+    .pay-instruction { font-size: 0.8rem; color: #94a3b8; margin-top: 15px; margin-bottom: 5px; }
+    .color-wechat { color: #2AAD67; }
+    .color-alipay { color: #1677ff; }
+    .color-paypal { color: #003087; }
 
-    /* 按钮覆盖 */
+    /* 全局按钮 */
     div[data-testid="stButton"] button { width: 100% !important; border-radius: 6px !important; font-weight: 600 !important; }
     
-    /* 咖啡统计 */
+    /* 统计条 */
     .stats-bar { display: flex; justify-content: center; gap: 25px; margin-top: 40px; padding: 15px 25px; background-color: white; border-radius: 50px; border: 1px solid #eee; color: #6b7280; font-size: 0.85rem; width: fit-content; margin-left: auto; margin-right: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
 </style>
 """, unsafe_allow_html=True)
@@ -314,27 +292,54 @@ if 'last_sold_id' not in st.session_state: st.session_state.last_sold_id = None
 if 'visitor_id' not in st.session_state: st.session_state["visitor_id"] = str(uuid.uuid4())
 if 'coffee_num' not in st.session_state: st.session_state.coffee_num = 1
 
-# 防止旧缓存错误
 if st.session_state.current_museum not in MANSION_CONFIG:
     st.session_state.current_museum = list(MANSION_CONFIG.keys())[0]
 
 # 语言包
 lang_texts = {
-    'zh': {'coffee_desc': '如果这个游戏帮到了你，欢迎支持。', 'coffee_btn': "☕ 请开发者喝咖啡", 'coffee_title': " ", 'coffee_amount': "请输入打赏杯数", 'pay_success': "收到！感谢打赏。❤️"},
-    'en': {'coffee_desc': 'Support is appreciated.', 'coffee_btn': "☕ Buy me a coffee", 'coffee_title': " ", 'coffee_amount': "Enter Coffee Count", 'pay_success': "Received! Thanks! ❤️"}
+    'zh': {
+        'coffee_desc': '如果这个游戏帮到了你，欢迎支持。', 
+        'coffee_btn': "☕ 请开发者喝咖啡", 
+        'coffee_title': " ", 
+        'coffee_amount': "请输入打赏杯数", 
+        'pay_success': "收到！感谢打赏。❤️",
+        'pay_wechat': '微信支付',
+        'pay_alipay': '支付宝',
+        'pay_paypal': '贝宝',
+        'presets': [("☕ 提神", 1), ("🍗 鸡腿", 3), ("🚀 续命", 5)]
+    },
+    'en': {
+        'coffee_desc': 'Support is appreciated.', 
+        'coffee_btn': "☕ Buy me a coffee", 
+        'coffee_title': " ", 
+        'coffee_amount': "Enter Coffee Count", 
+        'pay_success': "Received! Thanks! ❤️",
+        'pay_wechat': 'WeChat',
+        'pay_alipay': 'Alipay',
+        'pay_paypal': 'PayPal',
+        'presets': [("☕ Coffee", 1), ("🍗 Meal", 3), ("🚀 Rocket", 5)]
+    }
 }
 current_text = lang_texts[st.session_state.language]
 
 # ==========================================
-# 5. 顶部功能区
+# 5. 顶部功能区 (新增：外链按钮)
 # ==========================================
-col_title, col_lang = st.columns([0.9, 0.1])
-with col_title:
-    st.markdown("<h2 style='margin-top: 0; color: #111;'>🏛️ 华夏国宝私有化中心</h2>", unsafe_allow_html=True)
+col_empty, col_lang, col_more = st.columns([0.7, 0.1, 0.2])
 with col_lang:
-    if st.button("En/中", key="lang_switch"):
+    l_btn = "En" if st.session_state.language == 'zh' else "中"
+    if st.button(l_btn, key="lang_switch"):
         st.session_state.language = 'en' if st.session_state.language == 'zh' else 'zh'
         st.rerun()
+
+with col_more:
+    # 插入外链按钮
+    st.markdown("""
+        <a href="https://laodeng.streamlit.app/" target="_blank" class="neal-btn-link">
+            <button class="neal-btn">✨ 更多好玩应用</button>
+        </a>""", unsafe_allow_html=True)
+
+st.markdown("<h2 style='margin-top: 10px; color: #111;'>🏛️ 华夏国宝私有化中心</h2>", unsafe_allow_html=True)
 
 # 博物馆选择器
 selected_museum = st.radio(
@@ -350,9 +355,8 @@ if selected_museum != st.session_state.current_museum:
     st.rerun()
 
 # ==========================================
-# 6. 核心功能：动态仪表盘 & 动画逻辑
+# 6. 核心功能
 # ==========================================
-
 dashboard_placeholder = st.empty()
 
 def render_dashboard(current_revenue_display):
@@ -382,7 +386,6 @@ def render_dashboard(current_revenue_display):
     """
     dashboard_placeholder.markdown(html, unsafe_allow_html=True)
 
-# 初始渲染
 render_dashboard(st.session_state.total_revenue)
 
 def format_price(price):
@@ -412,7 +415,7 @@ def auction_animation(item_price, item_name, item_id):
     st.rerun()
 
 # ==========================================
-# 7. 商品展示区 (修改：隐藏未拍卖价格)
+# 7. 商品展示区
 # ==========================================
 items = MUSEUM_TREASURES.get(st.session_state.current_museum, [])
 cols_per_row = 4
@@ -425,20 +428,15 @@ for row_items in rows:
         with cols[idx]:
             is_sold = item_id in st.session_state.sold_items
             
-            # --- 关键修改：显示逻辑 ---
             if is_sold:
-                # 已卖出：显示真实价格
                 display_price = f"¥{format_price(item['price'])}"
                 price_class = "t-price sold-price"
-                # 如果是刚刚卖出的，添加渐显动画
                 if item_id == st.session_state.get('last_sold_id'):
                     price_class += " price-reveal"
             else:
-                # 未卖出：隐藏价格，显示占位符
                 display_price = "🕵️ 价值待揭晓"
                 price_class = "t-price unsold-price"
             
-            # 卡片 HTML
             st.markdown(f"""
             <div class="treasure-card">
                 <div class="t-img-box">
@@ -460,11 +458,12 @@ for row_items in rows:
                     auction_animation(item['price'], item['name'], item_id)
 
 # ==========================================
-# 8. 底部功能
+# 8. 底部功能 (修改：集成打赏系统)
 # ==========================================
 st.write("<br><br>", unsafe_allow_html=True)
 c1, c2, c3 = st.columns([1, 2, 1])
 
+# 重置按钮
 with c1:
     if st.button("🔄 破产/重置", type="secondary", use_container_width=True):
         st.session_state.sold_items = set()
@@ -472,17 +471,62 @@ with c1:
         st.session_state.last_sold_id = None
         st.rerun()
 
+# 咖啡打赏按钮
 with c2:
     @st.dialog(" " + current_text['coffee_title'], width="small")
     def show_coffee_window():
         st.markdown(f"""<div style="text-align:center; color:#666; margin-bottom:15px;">{current_text['coffee_desc']}</div>""", unsafe_allow_html=True)
-        col_amount, col_qr = st.columns([1, 1], gap="small")
+        
+        # 1. 快捷选项
+        presets = current_text['presets']
+        def set_val(n): st.session_state.coffee_num = n
+        
+        p_cols = st.columns(3, gap="small")
+        for i, (label, num) in enumerate(presets):
+            with p_cols[i]:
+                if st.button(label, use_container_width=True, key=f"preset_{i}"):
+                    set_val(num)
+        
+        st.write("")
+        
+        # 2. 自定义输入
+        col_amount, col_padding = st.columns([1, 1], gap="small")
         with col_amount: 
-            cnt = st.number_input(current_text['coffee_amount'], 1, 100, step=1, key='coffee_num_input')
+            cnt = st.number_input(current_text['coffee_amount'], 1, 100, step=1, key='coffee_num')
+        
         cny_total = cnt * 10
-        with st.container(border=True):
-            st.markdown(f"""<div style="text-align:center; font-size:1.5rem; font-weight:800; color:#d9534f;">¥{cny_total}</div>""", unsafe_allow_html=True)
-            st.image(f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Donate_{cny_total}", use_container_width=True)
+        usd_total = cnt * 2
+
+        # 3. 支付卡片渲染函数
+        def render_pay_tab(title, amount_str, color_class, img_name, qr_suffix, link=None):
+            with st.container(border=True):
+                st.markdown(f"""<div style="text-align: center; padding-bottom: 10px;">
+                    <div class="pay-label {color_class}">{title}</div>
+                    <div class="pay-amount-display {color_class}">{amount_str}</div></div>""", unsafe_allow_html=True)
+                
+                # 尝试加载本地图片，没有则生成二维码
+                c_img_1, c_img_2, c_img_3 = st.columns([1, 4, 1])
+                with c_img_2:
+                    local_img_path = os.path.join(PROJECT_ROOT, "img", img_name)
+                    if os.path.exists(local_img_path):
+                        st.image(local_img_path, use_container_width=True)
+                    else:
+                        qr_data = f"Donate_{cny_total}_{qr_suffix}" if not link else link
+                        st.image(f"https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={qr_data}", use_container_width=True)
+                
+                if link:
+                    st.write("")
+                    st.link_button(f"👉 Pay {amount_str}", link, type="primary", use_container_width=True)
+                else:
+                    st.markdown(f"""<div class="pay-instruction" style="text-align: center;">请使用手机扫描上方二维码</div>""", unsafe_allow_html=True)
+
+        # 4. 支付选项卡
+        t1, t2, t3 = st.tabs([current_text['pay_wechat'], current_text['pay_alipay'], current_text['pay_paypal']])
+        with t1: render_pay_tab("WeChat Pay", f"¥{cny_total}", "color-wechat", "wechat_pay.jpg", "WeChat")
+        with t2: render_pay_tab("Alipay", f"¥{cny_total}", "color-alipay", "ali_pay.jpg", "Alipay")
+        with t3: render_pay_tab("PayPal", f"${usd_total}", "color-paypal", "paypal.png", "PayPal", "https://paypal.me/yourid")
+
+        st.write("")
         if st.button("🎉 " + current_text['pay_success'].split('!')[0], type="primary", use_container_width=True):
             st.balloons()
             time.sleep(1)
