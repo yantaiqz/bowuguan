@@ -699,62 +699,6 @@ def render_auction_detail():
 render_auction_detail()
 
 # ==========================================
-# 9. 仪表盘模块（优化：图片显示、叠加文本错位修复）
-# ==========================================
-dashboard_placeholder = st.empty()
-
-def render_dashboard(current_revenue_display):
-    m_info = MANSION_CONFIG[st.session_state.current_museum]
-    villa_count = current_revenue_display / m_info["price"] if m_info["price"] > 0 else 0  # 避免除零错误
-    
-    # 分栏布局（优化：比例更合理）
-    col1, col2 = dashboard_placeholder.columns([0.8, 0.23], gap="small")
-    with col1:
-        # 左侧统计信息 <div style="font-size: 1.4rem; font-weight: 800; color: #111; margin-bottom: 10px;">{st.session_state.current_museum}</div>
-            
-        st.markdown(f"""
-        <div class="dashboard">
-            <div style="font-size: 1.8rem; font-weight: 900; color: #d9534f; margin-bottom: 8px;">
-                ¥{current_revenue_display / 100000000:.4f}亿
-            </div>
-            <div style="font-size: 0.8rem; color: #86868b; text-transform: uppercase;">累计拍卖总额</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        # 右侧图片 + 叠加文本（修复：绝对定位更稳定）
-        img_container = st.container()
-        with img_container:
-            # 图片容错：如果本地图片不存在，使用占位图
-            if os.path.exists(m_info["mansion_img"]):
-                img_path = m_info["mansion_img"]
-            else:
-                img_path = f"https://picsum.photos/seed/mansion_{st.session_state.current_museum}/400/250"
-            
-   
-            # 1. 先写标题
-           # st.markdown(f"🏠 {m_info['mansion_name']}") 
-            
-            # 2. 再放图片（去掉 caption 参数）
-            st.image(
-                img_path,
-                width=400,
-                # caption=...  <-- 删除这行，因为已经写在上面了
-                use_column_width=True
-            )
-            
-            # 修复：叠加文本定位，避免错位
-            overlay_text = f"当前财富购买力：<br>× {villa_count:.2f} 套" if st.session_state.language == 'zh' else f"Wealth Purchasing Power: × {villa_count:.2f} Sets "
-            st.markdown(f"""
-            <div class="mansion-overlay-text">
-                {overlay_text}{m_info['mansion_name']}
-            </div>
-            """, unsafe_allow_html=True)
-
-# 渲染仪表盘
-render_dashboard(st.session_state.total_revenue)
-
-# ==========================================
 # 10. 拍卖动画（优化：减少重渲染，提升流畅度）
 # ==========================================
 def auction_animation(item_price, item_name, item_id):
