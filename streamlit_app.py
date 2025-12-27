@@ -149,7 +149,7 @@ def get_base64_image(image_path):
 
 # 预加载图片逻辑
 for museum_key, treasures in MUSEUM_TREASURES.items():
-    current_dir = os.path.join(BASE_IMG_DIR, museum_key)
+    current_dir = os.path.join(BASE_IMG_ROOT, museum_key)
     for idx, treasure in enumerate(treasures, start=1):
         # 尝试匹配本地文件
         img_names = [f"{idx}.jpeg", f"[] ({idx}).jpeg", f"{idx}.jpg"]
