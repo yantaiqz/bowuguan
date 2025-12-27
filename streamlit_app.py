@@ -144,6 +144,25 @@ for idx, treasure in enumerate(MUSEUM_TREASURES["南京博物院"], start=1):
     treasure["img"] = os.path.join(BASE_IMG_PATH, img_filename)
     # 去除路径中的转义符（确保兼容不同系统）
     treasure["img"] = treasure["img"].replace("\\", "/")
+
+
+# 验证结果（可选）
+if __name__ == "__main__":
+    for treasure in MUSEUM_TREASURES["南京博物院"]:
+        print(f"{treasure['id']} - {treasure['name']}: {treasure['img']}")
+
+# 验证文件是否存在（仅本地运行时有效）
+def check_img_exists(img_path):
+    # 转换为本地绝对路径
+    local_path = os.path.abspath(img_path.lstrip("/"))
+    return os.path.exists(local_path)
+
+# 批量验证
+for treasure in MUSEUM_TREASURES["南京博物院"]:
+    if check_img_exists(treasure["img"]):
+        print(f"✅ {treasure['name']} - 图片存在: {treasure['img']}")
+    else:
+        print(f"❌ {treasure['name']} - 图片不存在: {treasure['img']}")
         
 # ==========================================
 # 3. 样式 (CSS 动画核心)
