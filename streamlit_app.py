@@ -54,22 +54,22 @@ MANSION_CONFIG = {
     "三星堆博物馆": {
         "mansion_name": "成都麓山国际豪宅", 
         "price": 50000000, 
-        "mansion_img": os.path.join(MANSION_IMG_ROOT, "2.jpeg")
+        "mansion_img": os.path.join(MANSION_IMG_ROOT, "5.jpeg")
     },
     "中国国家博物馆": {
         "mansion_name": "什刹海四合院", 
         "price": 150000000, 
-        "mansion_img": os.path.join(MANSION_IMG_ROOT, "3.jpeg")
+        "mansion_img": os.path.join(MANSION_IMG_ROOT, "2.jpeg")
     },
     "上海博物馆": {
         "mansion_name": "愚园路老洋房", 
         "price": 200000000, 
-        "mansion_img": os.path.join(MANSION_IMG_ROOT, "4.jpeg")
+        "mansion_img": os.path.join(MANSION_IMG_ROOT, "3.jpeg")
     },
     "陕西历史博物馆": {
         "mansion_name": "曲江池畔大平层", 
         "price": 3000000, 
-        "mansion_img": os.path.join(MANSION_IMG_ROOT, "5.jpeg")
+        "mansion_img": os.path.join(MANSION_IMG_ROOT, "4.jpeg")
     }
 }
 
@@ -673,7 +673,7 @@ def render_dashboard(current_revenue_display):
     villa_count = current_revenue_display / m_info["price"] if m_info["price"] > 0 else 0  # 避免除零错误
     
     # 分栏布局（优化：比例更合理）
-    col1, col2 = dashboard_placeholder.columns([0.6, 0.4], gap="large")
+    col1, col2 = dashboard_placeholder.columns([0.4, 0.6], gap="small")
     with col1:
         # 左侧统计信息
         st.markdown(f"""
