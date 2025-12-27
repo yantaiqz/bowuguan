@@ -698,7 +698,7 @@ def render_dashboard(current_revenue_display):
             
    
             # 1. 先写标题
-            st.markdown(f"🏠 {m_info['mansion_name']}") 
+           # st.markdown(f"🏠 {m_info['mansion_name']}") 
             
             # 2. 再放图片（去掉 caption 参数）
             st.image(
@@ -709,7 +709,7 @@ def render_dashboard(current_revenue_display):
             )
             
             # 修复：叠加文本定位，避免错位
-            overlay_text = f"当前财富购买力：× {villa_count:.2f} 套" if st.session_state.language == 'zh' else f"Wealth Purchasing Power: × {villa_count:.2f} Sets"
+            overlay_text = f"当前财富购买力：× {villa_count:.2f} 套" if st.session_state.language == 'zh' else f"Wealth Purchasing Power: × {villa_count:.2f} Sets {m_info['mansion_name']}"
             st.markdown(f"""
             <div class="mansion-overlay-text">
                 {overlay_text}
