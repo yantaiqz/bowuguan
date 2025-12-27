@@ -34,7 +34,7 @@ MANSION_CONFIG = {
 }
 
 MUSEUM_TREASURES = {
-    "南京博物院": [
+    "nanjing": [
         {"id": "nj_1", "name": "金兽", "period": "西汉", "desc": "含金量99%，最重金器", "price": 500000000, "img": ""},
         {"id": "nj_2", "name": "釉里红梅瓶", "period": "明洪武", "desc": "现存唯一带盖梅瓶", "price": 800000000, "img": ""},
         {"id": "nj_3", "name": "金蝉玉叶", "period": "明代", "desc": "金枝玉叶，工艺精湛", "price": 90000000, "img": ""},
@@ -54,7 +54,7 @@ MUSEUM_TREASURES = {
         {"id": "nj_17", "name": "人面兽面玉琮", "period": "良渚", "desc": "微雕工艺神作", "price": 150000000, "img": ""},
         {"id": "nj_18", "name": "青瓷釉下彩壶", "period": "唐代", "desc": "改写陶瓷史的孤品", "price": 110000000, "img": ""},
     ],
-    "三星堆博物馆": [
+    "sanxingdui": [
         {"id": "sx_1", "name": "青铜大立人", "period": "商代", "desc": "世界铜像之王", "price": 2000000000, "img": "https://picsum.photos/seed/sx1/400/300"},
         {"id": "sx_2", "name": "青铜神树", "period": "商代", "desc": "通天神树", "price": 2500000000, "img": "https://picsum.photos/seed/sx2/400/300"},
         {"id": "sx_3", "name": "金面具", "period": "商代", "desc": "半张黄金脸", "price": 800000000, "img": "https://picsum.photos/seed/sx3/400/300"},
@@ -74,7 +74,7 @@ MUSEUM_TREASURES = {
         {"id": "sx_17", "name": "青铜鸡", "period": "商代", "desc": "雄鸡一唱", "price": 80000000, "img": "https://picsum.photos/seed/sx17/400/300"},
         {"id": "sx_18", "name": "玉琮", "period": "商代", "desc": "良渚文化影响", "price": 200000000, "img": "https://picsum.photos/seed/sx18/400/300"},
     ],
-    "中国国家博物馆": [
+    "beijing": [
         {"id": "bj_1", "name": "清明上河图", "period": "北宋", "desc": "中华第一神品", "price": 5000000000, "img": "https://picsum.photos/seed/bj1/400/300"},
         {"id": "bj_2", "name": "金瓯永固杯", "period": "清乾隆", "desc": "乾隆御用金杯", "price": 600000000, "img": "https://picsum.photos/seed/bj2/400/300"},
         {"id": "bj_3", "name": "后母戊鼎", "period": "商代", "desc": "青铜之王", "price": 4000000000, "img": "https://picsum.photos/seed/bj3/400/300"},
@@ -94,7 +94,7 @@ MUSEUM_TREASURES = {
         {"id": "bj_17", "name": "利簋", "period": "西周", "desc": "记录武王伐纣", "price": 700000000, "img": "https://picsum.photos/seed/bj17/400/300"},
         {"id": "bj_18", "name": "鹳鱼石斧陶缸", "period": "仰韶", "desc": "绘画史第一页", "price": 400000000, "img": "https://picsum.photos/seed/bj18/400/300"},
     ],
-    "上海博物馆": [
+    "shanghai": [
         {"id": "sh_1", "name": "大克鼎", "period": "西周", "desc": "海内三宝之一", "price": 1500000000, "img": "https://picsum.photos/seed/sh1/400/300"},
         {"id": "sh_2", "name": "晋侯苏钟", "period": "西周", "desc": "铭文刻在钟表", "price": 800000000, "img": "https://picsum.photos/seed/sh2/400/300"},
         {"id": "sh_3", "name": "孙位高逸图", "period": "唐代", "desc": "唐代人物画孤本", "price": 1200000000, "img": "https://picsum.photos/seed/sh3/400/300"},
@@ -114,7 +114,7 @@ MUSEUM_TREASURES = {
         {"id": "sh_17", "name": "青花牡丹纹罐", "period": "元代", "desc": "元青花大器", "price": 550000000, "img": "https://picsum.photos/seed/sh17/400/300"},
         {"id": "sh_18", "name": "缂丝莲塘乳鸭", "period": "南宋", "desc": "朱克柔真迹", "price": 800000000, "img": "https://picsum.photos/seed/sh18/400/300"},
     ],
-    "陕西历史博物馆": [
+    "xian": [
         {"id": "xa_1", "name": "兽首玛瑙杯", "period": "唐代", "desc": "海内孤品", "price": 2000000000, "img": "https://picsum.photos/seed/xa1/400/300"},
         {"id": "xa_2", "name": "舞马衔杯银壶", "period": "唐代", "desc": "大唐盛世缩影", "price": 800000000, "img": "https://picsum.photos/seed/xa2/400/300"},
         {"id": "xa_3", "name": "皇后之玺", "period": "西汉", "desc": "吕后之印", "price": 1000000000, "img": "https://picsum.photos/seed/xa3/400/300"},
@@ -144,19 +144,7 @@ def get_base64_image(image_path):
         b64_data = base64.b64encode(img_file.read()).decode()
     return f"data:image/jpeg;base64,{b64_data}"
 
-# ==========================================
-# 图片加载逻辑
-# ==========================================
-for idx, treasure in enumerate(MUSEUM_TREASURES["南京博物院"], start=1):
-    img_name_complex = f"[] ({idx}).jpeg"
-    final_path = os.path.join(IMG_DIR, img_name_complex)
 
-    b64_str = get_base64_image(final_path)
-
-    if b64_str:
-        treasure["img"] = b64_str
-    else:
-        treasure["img"] = f"https://picsum.photos/seed/nj{idx}/400/300"
 
 # ==========================================
 # 通用图片加载逻辑（支持所有博物馆）
