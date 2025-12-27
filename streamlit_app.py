@@ -222,17 +222,37 @@ st.markdown("""
     }
     .treasure-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); }
     
-    .t-img-box { height: 180px; width: 100%; overflow: hidden; background: #f0f0f0; display: flex; align-items: center; justify-content: center; }
+    /* --- 图片容器 --- */
+    .t-img-box { 
+        height: 180px; 
+        width: 100%; 
+        overflow: hidden; /* 防止放大的图片溢出容器 */
+        background: #f8f9fa; /* 极淡的背景色，万一图片加载失败时显示 */
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+    }
 
-    /* --- 核心修改：圆形图片 --- */
+    /* --- 核心修改：圆形无留白图片 --- */
     .t-img { 
-        width: 140px !important;       /* 强制固定宽度 */
-        height: 140px !important;      /* 强制固定高度 */
-        object-fit: cover;             /* 裁剪防止变形 */
-        border-radius: 50%;            /* 变圆 */
-        border: 4px solid white;       /* 增加白色边框提升质感 */
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* 添加阴影 */
-        transition: all 0.3s ease; 
+        width: 130px !important;       /* 1. 强制固定宽度 */
+        height: 130px !important;      /* 2. 强制固定高度，必须与宽度一致 */
+        border-radius: 50%;            /* 3. 变成圆形 */
+        
+        object-fit: cover;             /* 4. 关键：裁剪图片以填满容器，绝不压缩变形 */
+        object-position: center center;/* 5. 关键：确保文物主体（通常在中间）居中 */
+        
+        transform: scale(1.1);         /* 6. 技巧：默认放大110%，切除图片自带的白边 */
+        
+        border: 3px solid white;       /* 装饰：白色描边 */
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* 装饰：立体阴影 */
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 弹性过渡动画 */
+    }
+    
+    /* 鼠标悬停时的特效 */
+    .treasure-card:hover .t-img {
+        transform: scale(1.2) rotate(3deg); /* 悬停时进一步放大，增加互动感 */
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
     }
     
     .t-content { padding: 12px !important; flex-grow: 1; display: flex; flex-direction: column; }
