@@ -666,117 +666,59 @@ render_auction_detail()
 # ==========================================
 # 9. 仪表盘模块（优化：图片显示、叠加文本错位修复）
 # ==========================================
-
-# 1. 辅助函数：将本地图片转为 Base64 字符串
-def get_image_base64(path):
-    if os.path.exists(path):
-        with open(path, "rb") as f:
-            data = base64.b64encode(f.read()).decode()
-            return f"data:image/jpeg;base64,{data}"
-    return f"https://picsum.photos/seed/mansion/400/250"
-
-# 2. 定义统一高度
-FIXED_HEIGHT = "200px" 
-
-# 3. CSS 样式增强
-st.markdown(f"""
-<style>
-    /* 左右公用的对齐容器 */
-    .align-container {{
-        height: {FIXED_HEIGHT};
-        display: flex;
-        flex-direction: column;
-        border-radius: 12px;
-        overflow: hidden;
-        border: 1px solid #e5e5e5;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        background: white;
-    }}
-
-    /* 左侧面板：居中对齐内容 */
-    .dashboard-left {{
-        padding: 20px;
-        justify-content: center;
-    }}
-
-    /* 右侧面板：定位标题和叠加层 */
-    .mansion-right {{
-        position: relative;
-    }}
-    
-    .mansion-img-fit {{
-        width: 100%;
-        height: 100%;
-        object-fit: cover; /* 关键：图片自动裁剪填充，不留白不变形 */
-    }}
-
-    .mansion-top-label {{
-        position: absolute;
-        top: 10px; left: 10px;
-        background: rgba(255, 255, 255, 0.9);
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        font-weight: bold;
-        color: #333;
-        z-index: 2;
-    }}
-
-    .mansion-overlay-bottom {{
-        position: absolute;
-        bottom: 0; left: 0; right: 0;
-        background: linear-gradient(transparent, rgba(0,0,0,0.7));
-        color: white;
-        padding: 10px;
-        font-size: 0.8rem;
-        z-index: 2;
-    }}
-</style>
-""", unsafe_allow_html=True)
-
-
-# 保留你的 st.empty() 占位符（用于动态刷新）
 dashboard_placeholder = st.empty()
 
-current_revenue_display=st.session_state.total_revenue
-
-# 关键：在占位符内填充内容时，先创建一个 Container 容器
-with dashboard_placeholder.container():  # 新增：通过 .container() 创建支持分栏的容器
-        
-    # 4. 布局渲染
-    col1, col2 = dashboard_placeholder.columns([0.4, 0.6], gap="small")
+def render_dashboard(current_revenue_display):
+    m_info = MANSION_CONFIG[st.session_state.current_museum]
+    villa_count = current_revenue_display / m_info["price"] if m_info["price"] > 0 else 0  # 避免除零错误
     
+    # 分栏布局（优化：比例更合理）
+    col1, col2 = dashboard_placeholder.columns([0.8, 0.2], gap="small")
     with col1:
-        # 使用统一的 align-container 类
+        # 左侧统计信息
         st.markdown(f"""
-        <div class="align-container dashboard-left">
-            <div style="font-size: 1.1rem; font-weight: 700; color: #666; margin-bottom: 5px;">{st.session_state.current_museum}</div>
-            <div style="font-size: 1.8rem; font-weight: 900; color: #d9534f;">
+        <div class="dashboard">
+            <div style="font-size: 1.4rem; font-weight: 800; color: #111; margin-bottom: 10px;">{st.session_state.current_museum}</div>
+            <div style="font-size: 1.8rem; font-weight: 900; color: #d9534f; margin-bottom: 8px;">
                 ¥{current_revenue_display / 100000000:.4f}亿
             </div>
-            <div style="font-size: 0.75rem; color: #999; text-transform: uppercase; margin-top: 5px;">累计拍卖总额</div>
+            <div style="font-size: 0.8rem; color: #86868b; text-transform: uppercase;">累计拍卖总额</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
-        # 获取图片
-        img_src = get_image_base64(m_info["mansion_img"])
-        overlay_text = f"财富购买力：× {villa_count:.2f} 套" if st.session_state.language == 'zh' else f"Purchasing Power: × {villa_count:.2f}"
-        
-        # 纯 HTML 实现高度对齐和置顶标题
-        st.markdown(f"""
-        <div class="align-container mansion-right">
-            <div class="mansion-top-label">🏠 {m_info['mansion_name']}</div>
+        # 右侧图片 + 叠加文本（修复：绝对定位更稳定）
+        img_container = st.container()
+        with img_container:
+            # 图片容错：如果本地图片不存在，使用占位图
+            if os.path.exists(m_info["mansion_img"]):
+                img_path = m_info["mansion_img"]
+            else:
+                img_path = f"https://picsum.photos/seed/mansion_{st.session_state.current_museum}/400/250"
             
-            <img src="{img_src}" class="mansion-img-fit">
+   
+            # 1. 先写标题
+           # st.markdown(f"🏠 {m_info['mansion_name']}") 
             
-            <div class="mansion-overlay-bottom">
+            # 2. 再放图片（去掉 caption 参数）
+            st.image(
+                img_path,
+                width=400,
+                # caption=...  <-- 删除这行，因为已经写在上面了
+                use_column_width=True
+            )
+            
+            # 修复：叠加文本定位，避免错位
+            overlay_text = f"当前财富购买力：× {villa_count:.2f} 套" if st.session_state.language == 'zh' else f"Wealth Purchasing Power: × {villa_count:.2f} Sets {m_info['mansion_name']}"
+            st.markdown(f"""
+            <div class="mansion-overlay-text">
                 {overlay_text}
             </div>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
 
-    
+# 渲染仪表盘
+render_dashboard(st.session_state.total_revenue)
+
 # ==========================================
 # 10. 拍卖动画（优化：减少重渲染，提升流畅度）
 # ==========================================
