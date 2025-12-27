@@ -678,7 +678,7 @@ def render_dashboard(current_revenue_display):
         # 左侧统计信息
         st.markdown(f"""
         <div class="dashboard">
-            <div style="font-size: 1.4rem; font-weight: 800; color: #111; margin-bottom: 10px;">{st.session_state.current_museum}</div>
+            #<div style="font-size: 1.4rem; font-weight: 800; color: #111; margin-bottom: 10px;">{st.session_state.current_museum}</div>
             <div style="font-size: 1.8rem; font-weight: 900; color: #d9534f; margin-bottom: 8px;">
                 ¥{current_revenue_display / 100000000:.4f}亿
             </div>
